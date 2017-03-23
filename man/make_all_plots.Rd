@@ -4,17 +4,25 @@
 \alias{make_all_plots}
 \title{make_all_plots.R}
 \usage{
-make_all_plots(sig_dir, genes_dir, logT = FALSE)
+make_all_plots(gene_sig, mRNA_expr_matrix, names = NULL, covariates = NULL,
+  thresholds = NULL, out_dir = "~", showResults = FALSE)
 }
 \arguments{
-\item{sig_dir}{This is the signature directory file location}
+\item{gene_sig}{A list of genes representing the gene signature to be tested.}
 
-\item{genes_dir}{This is the gene expression file location}
+\item{mRNA_expr_matrix}{A list of expression matrices}
+
+\item{names}{The names of the different datasets contained in mRNA_expr_matrix}
+
+\item{covariates}{A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap}
+
+\item{thresholds}{A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise.}
+
+\item{out_dir}{A path to the directory where the resulting output files are written}
+
+\item{showResults}{Tells if open dialog boxes showing the computed results. Default is FALSE}
 }
 \description{
 Makes the plots in each of the subfunctions.
 }
-\examples{
-make_all_plots()
-}
-\keyword{expression}
+\keyword{make_all_plots}
