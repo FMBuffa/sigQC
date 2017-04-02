@@ -24,6 +24,8 @@
 
 make_all_plots <- function(gene_sig, mRNA_expr_matrix, names=NULL , covariates=NULL, thresholds=NULL, out_dir = '~', showResults = FALSE){
   ###########Check the input
+ radar_plot_values <- list();
+
   if(missing(gene_sig)){
     stop("Need to specify a list of genes. The ids must match the ones in the expression matrices.")
   }
@@ -95,7 +97,10 @@ make_all_plots <- function(gene_sig, mRNA_expr_matrix, names=NULL , covariates=N
       biocLite("RankProd", dependencies=TRUE)
       library(RankProd)
     }
-
+    if(!require("fmsb")){
+      install.packages("fmsb")
+      library(fmsb)
+    }
     dir.create(out_dir)
    # write.table('',file=file.path(out_dir, "log.log"))
     #LOG file path
@@ -103,32 +108,38 @@ make_all_plots <- function(gene_sig, mRNA_expr_matrix, names=NULL , covariates=N
     #Log conn
     log.con = file(logfile.path, open = "a")
     cat(paste("LOG FILE CREATED: ",Sys.time(), sep=""), file=log.con, sep="\n")
-    tryCatch(eval_var_loc(gene_sig, mRNA_expr_matrix,names,out_dir,file=log.con,showResults),
+    tryCatch(radar_plot_values <- eval_var_loc(gene_sig, mRNA_expr_matrix,names,out_dir,file=log.con,showResults,radar_plot_values),
              error=function(err){
                cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
              })
-    tryCatch(eval_expr_loc(gene_sig,mRNA_expr_matrix,names,thresholds, out_dir,file=log.con,showResults ),
+    tryCatch(radar_plot_values <- eval_expr_loc(gene_sig,mRNA_expr_matrix,names,thresholds, out_dir,file=log.con,showResults,radar_plot_values ),
              error=function(err){
                cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
              })
-    tryCatch(eval_compactness_loc(gene_sig,mRNA_expr_matrix,names,out_dir,file=log.con,showResults ),
+    tryCatch(radar_plot_values <- eval_compactness_loc(gene_sig,mRNA_expr_matrix,names,out_dir,file=log.con,showResults,radar_plot_values ),
              error=function(err){
                cat(paste0("Error occurred during the evaluation of compactness: ",err), file=log.con, sep="\n")
              })
 
-    tryCatch({compare_metrics_loc(gene_sig,mRNA_expr_matrix,names,out_dir,file=log.con,showResults )},
+    tryCatch({radar_plot_values <- compare_metrics_loc(gene_sig,mRNA_expr_matrix,names,out_dir,file=log.con,showResults,radar_plot_values )},
              error=function(err){
             #  print(paste0("Error, likely due to inability to calculate PCA, because of missing values: ", err))
                cat(paste0("Error occurred, likely due to inability to calculate PCA, because of missing values:  ",err), file=log.con, sep="\n")
              })
-    tryCatch({eval_stan_loc(gene_sig,mRNA_expr_matrix,names,out_dir,file=log.con,showResults )},
+    tryCatch({radar_plot_values <- eval_stan_loc(gene_sig,mRNA_expr_matrix,names,out_dir,file=log.con,showResults,radar_plot_values )},
           error=function(err){
            cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
          })
-    tryCatch(eval_struct_loc(gene_sig,mRNA_expr_matrix,names,covariates,out_dir,file=log.con,showResults ),
+    tryCatch(radar_plot_values <- eval_struct_loc(gene_sig,mRNA_expr_matrix,names,covariates,out_dir,file=log.con,showResults,radar_plot_values ),
              error=function(err){
                cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
              })
+    # print(radar_plot_values)
+    tryCatch(make_radar_chart_loc(radar_plot_values,showResults,out_dir,file=log.con),
+             error=function(err){
+               cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
+             })
+
     if(!showResults)
       graphics.off()
     close(log.con)
@@ -136,6 +147,8 @@ make_all_plots <- function(gene_sig, mRNA_expr_matrix, names=NULL , covariates=N
     print("Error: the length of names is not matching the number of elements in the expression matrices list.
           You need to have a name for every dataset used.")
   }
+  # radar_plot_values
+  # print(radar_plot_values)
 }
 
 draw.heatmaps <- function(hmaps,names){
@@ -159,7 +172,7 @@ draw.heatmaps <- function(hmaps,names){
   }
 }
 
-eval_stan_loc <- function(gene_sig, mRNA_expr_matrix, names,out_dir = '~',file=NULL,showResults = FALSE){
+eval_stan_loc <- function(gene_sig, mRNA_expr_matrix, names,out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values ){
   num_rows <- ceiling(sqrt(length(names)))
   num_cols <- ceiling(length(names)/num_rows)
 
@@ -199,15 +212,17 @@ eval_stan_loc <- function(gene_sig, mRNA_expr_matrix, names,out_dir = '~',file=N
     rho <- cor(med_scores,z_transf_scores,method='spearman')
     rho_mean_med <- rho
     mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores))
+    radar_plot_values[[names[i]]]['standardization_comp'] <- rho
   }
   cat('Standardisation compared successfully.\n', file=file)
   if(showResults){
     dev.copy(pdf,file.path(out_dir, 'sig_standardisation_comp.pdf'),width=10,height=10)
   }
   dev.off()
+  radar_plot_values
 }
 
-eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir = '~',file=NULL,showResults = FALSE){
+eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # library(gplots)
   require(biclust)
   require(ComplexHeatmap)
@@ -373,6 +388,7 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
       num_cols_chosen <- 2
     }
     Xmotif <- biclust(x, method=BCXmotifs(), number=50, alpha=0.5, nd=num_cols_chosen, ns=20, sd=num_cols_chosen)
+
     if(Xmotif@Number > 1){
       heatmapBC(na.omit(t(sig_scores)),bicResult=Xmotif,col = colorpanel(100,"blue","white","red"), xlab='Gene ID',ylab='Sample')
       #	heatmapBC(x,bicResult=Xmotif,col = colorpanel(100,"blue","white","red"), xlab='Gene ID',ylab='Sample')
@@ -445,9 +461,10 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
 
   dev.copy(pdf,file.path(out_dir,'sig_eval_bivariate_clustering_binarized_maps.pdf'),width=10,height=10)
   dev.off()
+  radar_plot_values
 }
 
-eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NULL,showResults = FALSE){
+eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   #calculate the number of rows and columns in the image
   num_rows <- ceiling(sqrt(length(names)))
   num_cols <- ceiling(length(names)/num_rows)
@@ -520,20 +537,23 @@ eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NU
   # 	dev.new()
   # par(mfrow=c(num_rows,num_cols))
 
-  # for (i in 1:length(names)){
-  # 	coeff_of_var <- apply(mRNA_expr_matrix[[names[i]]],1,function(x) sd(as.numeric(na.omit(x)),na.rm=T) / mean(as.numeric(na.omit(x)),na.rm=T))
-  # 	coeff_of_var_gene_sig <- coeff_of_var[gene_sig]
-  # 	boxplot(na.omit(coeff_of_var),na.omit(coeff_of_var_gene_sig),#log="y",
-  # 		names=c('All Genes','Gene Signature'),
-  # 		ylab='Coefficient of Variation',
-  # 		main=paste0('Variance of signature genes vs. all genes\n',names[i]))
-  # }
+  for (i in 1:length(names)){
+  	coeff_of_var <- apply(mRNA_expr_matrix[[names[i]]],1,function(x) sd(as.numeric(na.omit(x)),na.rm=T) / mean(as.numeric(na.omit(x)),na.rm=T))
+  	coeff_of_var_gene_sig <- coeff_of_var[gene_sig]
+    radar_plot_values[[names[i]]]['coeff_of_var_ratio'] <- median(na.omit(coeff_of_var_gene_sig))/median(na.omit(coeff_of_var))
+
+  	# boxplot(na.omit(coeff_of_var),na.omit(coeff_of_var_gene_sig),#log="y",
+  		# names=c('All Genes','Gene Signature'),
+  		# ylab='Coefficient of Variation',
+  		# main=paste0('Variance of signature genes vs. all genes\n',names[i]))
+  }
   # dev.copy(pdf,paste0(out_dir,'/sig_expr_var.pdf'))
 
   # dev.off()
+  radar_plot_values
 }
 
-eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, out_dir = '~',file=NULL,showResults = FALSE){
+eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   #calculate the number of rows and columns in the image
   num_rows <- ceiling(sqrt(length(names)))
   num_cols <- ceiling(length(names)/num_rows)
@@ -560,6 +580,8 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
     }
     text(bar_expr, par("usr")[3], labels = names(gene_expr_vals), srt = 45, adj = c(1.1,1.1), xpd = TRUE, cex=0.5)
     axis(2)
+    radar_plot_values[[names[i]]]['med_prop_na'] <- median(1-gene_expr_vals)
+
   }
   if(showResults){
     dev.copy(pdf,file.path(out_dir,'sig_expr_barcharts_NA_values.pdf'),width=10,height=10)
@@ -584,7 +606,7 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
     genes_expr <- mRNA_expr_matrix[[names[i]]][gene_sig,]
     gene_expr_vals <- 1 - ((rowSums(genes_expr < thresholds[i])) / (dim(genes_expr)[2]))
     gene_expr_vals <- sort(gene_expr_vals)
-
+    radar_plot_values[[names[i]]]['med_prop_above_med'] <- median(gene_expr_vals)
     bar_expr <- barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion with expression above threshold",main=paste0("Signature gene expression across samples\n",names[i]), axisnames=F,axis=F)
     text(bar_expr, par("usr")[3], labels = names(gene_expr_vals), srt = 45, adj = c(1.1,1.1), xpd = TRUE, cex=0.5)
     axis(2)
@@ -607,6 +629,7 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
     genes_expr <- mRNA_expr_matrix[[names[i]]][gene_sig,]
     gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2]))
     plot(density(na.omit(gene_expr_vals),adjust=0.25),main=paste0("Signature gene expression across samples\n",names[i]),ylab="Density")
+    
   }
   if(showResults){
     dev.copy(pdf,file.path(out_dir,'sig_expr_density_plots.pdf'),width=10,height=10)
@@ -615,10 +638,11 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
   cat('Expression and density graphs created successfully.\n', file=file)
 
  # print(paste0("Min expression occurs for gene ID ",names(gene_expr_vals)[1], ", with ", round(gene_expr_vals[1]*100,2),"% non-zero expression."))
+  radar_plot_values
 }
 
 
-compare_metrics_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~',file=NULL,showResults = FALSE){
+compare_metrics_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   require(gplots)
   hmaps <- list()
   if (showResults){
@@ -693,6 +717,11 @@ compare_metrics_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~'
     autocors_mat[3,2] <- rho_pca1_med
     autocors_mat[3,3] <- 1
 
+    radar_plot_values[[names[i]]]['rho_mean_med'] <- rho_mean_med
+    radar_plot_values[[names[i]]]['rho_pca1_med'] <- rho_pca1_med
+    radar_plot_values[[names[i]]]['rho_mean_pca1'] <- rho_mean_pca1
+    
+
     # hmaps[[i]] <- heatmap.2(autocors_mat,
     #         	col = colorpanel(100,"blue","white","red"),#colorpanel(100,"red","yellow","green"),
     #          	trace = "none",
@@ -715,7 +744,7 @@ compare_metrics_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~'
   }
   dev.off()
   cat('Metrics compared successfully.\n', file=file)
-
+  radar_plot_values
 }
 
 
@@ -726,7 +755,7 @@ grab_grob <- function(){
   grid.grab()
 }
 
-eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~',file=NULL,showResults = FALSE){
+eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   require(gplots)
   if (showResults){
     dev.new()
@@ -786,6 +815,8 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
     }else{
       lines(density(unlist(na.omit(autocors))),col=i,main=NA,lwd=2)
     }
+    radar_plot_values[[names[i]]]['autocor_median'] <- median(na.omit(autocors))
+
   }
 
   mtext(side = 2, line = 2, 'Density',cex=0.8)
@@ -833,4 +864,44 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
     dev.copy(pdf,file.path(out_dir,'sig_autocor_rankProd.pdf'),width=10,height=10)
   }
   dev.off()
+  radar_plot_values
 }
+
+make_radar_chart_loc <- function(radar_plot_values,showResults, out_dir = '~',file){
+  radar_plot_mat <- c()
+  # print(radar_plot_values)
+  t <- sapply(radar_plot_values,function(x) radar_plot_mat <<- rbind(radar_plot_mat,x))
+  radar_plot_mat <- rbind(rep(1,length(radar_plot_values[[1]])),rep(0,length(radar_plot_values[[1]])),radar_plot_mat)
+  radar_plot_mat <- abs(radar_plot_mat)
+  # print(radar_plot_mat)
+  row.names(radar_plot_mat) <- c('max','min',names(radar_plot_values))
+
+   if (showResults){
+      dev.new()
+    }else{
+      pdf(file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
+    }
+
+  radarchart(as.data.frame(radar_plot_mat),
+    maxmin = T,axistype = 1,
+    cglcol = 'grey',axislabcol = 'black',
+    caxislabels = seq(0,1,length.out = 5),
+    cglty = 1,cglwd = 1,calcex = 0.5,
+    vlabels = c('Coef. of Var. \nRatio',
+      'Med. non-NA Prop.','Med. Prop.\nOver Thresh.',
+      'Med. Autocor.','Mean, Med.\nScore Cor.',
+      'PCA1, Med.\nScore Cor.','Mean, PCA1\nScore Cor.',
+      'Med., Z_Med.\nScore Cor.'),
+    vlcex = 0.8,
+    title='Signature Summary',
+    pty=16, plty=1,plwd = 2)
+    legend('topright', legend=names(radar_plot_values), seg.len=0.5, title="Datasets", pch=1, 
+       bty="n" ,lwd=3, horiz=FALSE, col=1:length(names(radar_plot_values)),cex=0.8)
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
+  }
+  dev.off()
+  cat('Radar chart made successfully.\n', file=file)
+
+}
+
