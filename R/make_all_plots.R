@@ -165,9 +165,11 @@ eval_stan_loc <- function(gene_sig, mRNA_expr_matrix, names,out_dir = '~',file=N
 
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir, 'sig_standardisation_comp.pdf'),width=10,height=10)
+    
   }
-
-  par(mfrow=c(num_rows,num_cols),oma=c(2,2,2,2),mar=c(4,4,4,4))
+   par(mfrow=c(num_rows,num_cols),oma=c(2,2,2,2),mar=c(4,4,4,4))
 
   for (i in 1:length(names)){
 
@@ -199,7 +201,9 @@ eval_stan_loc <- function(gene_sig, mRNA_expr_matrix, names,out_dir = '~',file=N
     mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores))
   }
   cat('Standardisation compared successfully.\n', file=file)
-  dev.copy(pdf,file.path(out_dir, 'sig_standardisation_comp.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir, 'sig_standardisation_comp.pdf'),width=10,height=10)
+  }
   dev.off()
 }
 
@@ -216,14 +220,14 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
 
         #here we will set the parameters for the font size etc in the heatmaps
 
-        # dim.pdf = dim(sig_scores);
+        dim.pdf = dim(sig_scores);
         # w = dim.pdf[2];
-        # h = dim.pdf[1];
-        # if(h<20){
-        #   row_names.fontsize = 12
-        # }else{
-        #   row_names.fontsize=2.54/log10(h)
-        # }
+        h = dim.pdf[1];
+        if(h<20){
+          row_names.fontsize = 12
+        }else{
+          row_names.fontsize=5/log10(h)
+        }
 
         # row_names_gp = gpar(fontsize = row_names.fontsize)
         # # column_names_gp = gpar(fontsize = col_names.fontsize)
@@ -233,7 +237,7 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
                 name=names[i],
                 heatmap_legend_param = list(title = names[i], color_bar = "continuous",legend_direction='vertical'),
                 column_title = paste0(names[i]),
-                row_names_gp =  gpar(fontsize = 7),
+                row_names_gp =  gpar(fontsize = row_names.fontsize),
                 row_title = 'Genes')#,
         #					column_names_max_height=unit(6,'cm'))
 
@@ -262,14 +266,14 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
                                   which="column")#,
           #show_annotation_name = TRUE)#, col = list(type = c("a" = "red", "b" = "blue"),
         }
-        #  dim.pdf = dim(sig_scores);
+         dim.pdf = dim(sig_scores);
         # w = dim.pdf[2];
-        # h = dim.pdf[1];
-        # if(h<20){
-        #   row_names.fontsize = 12
-        # }else{
-        #   row_names.fontsize=2.54/log10(h)
-        # }
+        h = dim.pdf[1];
+        if(h<20){
+          row_names.fontsize = 12
+        }else{
+          row_names.fontsize=5/log10(h)
+        }
 
         # row_names_gp = gpar(fontsize = row_names.fontsize)
 
@@ -278,7 +282,7 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
                 name=names[i],
                 heatmap_legend_param = list(title = names[i], color_bar = "continuous",legend_direction='vertical'),
                 column_title = paste0(names[i]),
-                row_names_gp = gpar(fontsize = 7),
+                row_names_gp = gpar(fontsize = row_names.fontsize),
                 row_title = 'Genes', top_annotation=ha1)#,
         # column_names_max_height=unit(6,'cm'))
         #draw(h1,heatmap_legend_side='left')
@@ -324,9 +328,13 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
    # print(str_to_eval)
     if (showResults){
       dev.new()
+    } else{
+     pdf(file.path(out_dir, paste0('sig_eval_struct_clustering_',names[i],'.pdf')),width=10,height=10)#paste0(out_dir,'/sig_autocor_hmps.pdf'))  
     }
     eval(parse(text=str_to_eval))
-    dev.copy(pdf,file.path(out_dir, paste0('sig_eval_struct_clustering_',names[i],'.pdf')))#paste0(out_dir,'/sig_autocor_hmps.pdf'))
+    if(showResults){
+      dev.copy(pdf,file.path(out_dir, paste0('sig_eval_struct_clustering_',names[i],'.pdf')),width=10,height=10)#paste0(out_dir,'/sig_autocor_hmps.pdf'))
+    }
     cat('Expression heatmaps saved successfully.\n', file=file)
 
     dev.off()
@@ -341,6 +349,7 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
   if (showResults){
     dev.new()
   }
+  
   par(cex.main=0.8,cex.lab = 0.8,oma=c(4,2,2,2),mar=c(4,4,4,4))
   hmaps <- lapply(1:length(names),function(i) {
     sig_scores <- as.matrix(mRNA_expr_matrix[[names[i]]][gene_sig,])
@@ -385,7 +394,7 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
 
   draw.heatmaps(hmaps,names)
 
-  dev.copy(pdf,fxile.path(out_dir,'sig_eval_bivariate_clustering.pdf'))
+  dev.copy(pdf,file.path(out_dir,'sig_eval_bivariate_clustering.pdf'),width=10,height=10)
   cat('Bi-clustering completed successfully\n', file=file)
 
   dev.off()
@@ -393,6 +402,8 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
   if (showResults){
     dev.new()
   }
+  # pdf(file.path(out_dir,'sig_eval_bivariate_clustering_binarized_maps.pdf'),width=10,height=10)
+
   par(cex.main=0.8,cex.lab = 0.8,oma=c(4,2,2,2),mar=c(4,4,4,4))
   hmaps <- lapply(1:length(names),function(i) {
     sig_scores <- as.matrix(mRNA_expr_matrix[[names[i]]][gene_sig,])
@@ -432,7 +443,7 @@ eval_struct_loc <- function(gene_sig, mRNA_expr_matrix,names,covariates, out_dir
 
   draw.heatmaps(hmaps,names)
 
-  dev.copy(pdf,file.path(out_dir,'sig_eval_bivariate_clustering_binarized_maps.pdf'))
+  dev.copy(pdf,file.path(out_dir,'sig_eval_bivariate_clustering_binarized_maps.pdf'),width=10,height=10)
   dev.off()
 }
 
@@ -443,7 +454,10 @@ eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NU
   # pdf(paste0(out_dir,'/sig_expr_var.pdf'))
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10) 
   }
+ 
   gene_sig_mean_sd_table <- list()
   par(mfrow=c(num_rows,num_cols))
   for (i in 1:length(names)){
@@ -485,7 +499,9 @@ eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NU
     colnames(gene_sig_mean_sd_table[[names[i]]]) <- c("Mean","SD")
 
   }
-  dev.copy(pdf,file.path(out_dir,'sig_mean_vs_sd.pdf'))
+  if(showResults){
+   dev.copy(pdf,file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10)  
+  }
   dev.off()
   cat('Mean vs SD graphs created successfully.\n', file=file)
 
@@ -524,7 +540,11 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
 
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_expr_barcharts_NA_values.pdf'),width=10,height=10)
+
   }
+
   par(mfrow=c(num_rows,num_cols),cex=0.7, cex.axis=0.5)
 
   for (i in 1:length(names)){
@@ -541,13 +561,17 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
     text(bar_expr, par("usr")[3], labels = names(gene_expr_vals), srt = 45, adj = c(1.1,1.1), xpd = TRUE, cex=0.5)
     axis(2)
   }
-  dev.copy(pdf,file.path(out_dir,'sig_expr_barcharts_NA_values.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_expr_barcharts_NA_values.pdf'),width=10,height=10)
+  }
   dev.off()
 
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_expr_barcharts.pdf'),width=10,height=10) 
   }
-
+ 
   par(mfrow=c(num_rows,num_cols),cex=0.7, cex.axis=0.5)
   if (length(thresholds) == 0) {
     thresholds <- rep(0,length(names))
@@ -565,13 +589,18 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
     text(bar_expr, par("usr")[3], labels = names(gene_expr_vals), srt = 45, adj = c(1.1,1.1), xpd = TRUE, cex=0.5)
     axis(2)
   }
-  dev.copy(pdf,file.path(out_dir,'sig_expr_barcharts.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_expr_barcharts.pdf'),width=10,height=10)
+  }
   dev.off()
 
 
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_expr_density_plots.pdf'),width=10,height=10)
   }
+
   par(mfrow=c(num_rows,num_cols))
   for (i in 1:length(names)){
     #calculate the porportion of nonzero expression data in the matrix
@@ -579,7 +608,9 @@ eval_expr_loc <- function(gene_sig, mRNA_expr_matrix,names, thresholds = NULL, o
     gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2]))
     plot(density(na.omit(gene_expr_vals),adjust=0.25),main=paste0("Signature gene expression across samples\n",names[i]),ylab="Density")
   }
-  dev.copy(pdf,file.path(out_dir,'sig_expr_density_plots.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_expr_density_plots.pdf'),width=10,height=10)
+  }
   dev.off()
   cat('Expression and density graphs created successfully.\n', file=file)
 
@@ -592,7 +623,10 @@ compare_metrics_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~'
   hmaps <- list()
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_compare_metrics.pdf'),width=10,height=10)
   }
+
   par(mfcol = c(4,length(names)),mar=c(4,4,4,4))
   for ( i in 1:length(names)){
     mRNA_expr_matrix[[names[i]]][!(is.finite(as.matrix(mRNA_expr_matrix[[names[i]]])))] <- NA
@@ -676,8 +710,9 @@ compare_metrics_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~'
     barplot(bars_plot,main="PCA vs proportion\n of variance") #ylim= c(0,1),
     mtext(side = 1, line = 2, 'PCA',cex=0.8)
   }
-
-  dev.copy(pdf,file.path(out_dir,'sig_compare_metrics.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_compare_metrics.pdf'),width=10,height=10)
+  }
   dev.off()
   cat('Metrics compared successfully.\n', file=file)
 
@@ -696,6 +731,8 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
   if (showResults){
     dev.new()
   }
+  # pdf(file.path(out_dir,'sig_autocor_hmps.pdf'),width=10,height=10)
+
   par(cex.main=0.8,cex.lab = 0.6,oma=c(2,0,0,0),mar=c(0,0,0,0))
   hmaps <- lapply(1:length(names),function(i) {
     autocors <- cor(t(na.omit(mRNA_expr_matrix[[names[i]]][intersect(gene_sig,rownames(mRNA_expr_matrix[[names[i]]])),])),method='spearman')
@@ -723,12 +760,15 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
   })
   draw.heatmaps(hmaps,names)
 
-  dev.copy(pdf,file.path(out_dir,'sig_autocor_hmps.pdf'))
+  dev.copy(pdf,file.path(out_dir,'sig_autocor_hmps.pdf'),width=10,height=10)
   dev.off()
 
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_autocor_dens.pdf'),width=10,height=10)
   }
+
   par(cex.main=0.8,cex.lab = 0.6,oma=c(2,2,2,2),mar=c(2,2,2,2),mfrow=c(1,1))
   max_dens <- -9999
   for (i in 1:length(names) ){
@@ -755,11 +795,16 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
   op <- par(cex=0.6)
 
   legend("topright",names,col=1:length(names),lwd=rep(2,length(names)))
-  dev.copy(pdf,file.path(out_dir,'sig_autocor_dens.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_autocor_dens.pdf'),width=10,height=10)
+  }
   dev.off()
   if (showResults){
     dev.new()
+  }else{
+    pdf(file.path(out_dir,'sig_autocor_rankProd.pdf'),width=10,height=10)
   }
+
   par(cex.main=0.8,cex.lab = 0.6,oma=c(2,2,2,2),mar=c(4,4,4,4))
   cat("Autocorrelation metrics successfully computed.\n", file=file)
 
@@ -784,6 +829,8 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
       cat("Rank product not computed as there is only one dataset.\n", file=file)
 
   }
-  dev.copy(pdf,file.path(out_dir,'sig_autocor_rankProd.pdf'))
+  if(showResults){
+    dev.copy(pdf,file.path(out_dir,'sig_autocor_rankProd.pdf'),width=10,height=10)
+  }
   dev.off()
 }
