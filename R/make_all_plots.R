@@ -882,6 +882,15 @@ make_radar_chart_loc <- function(radar_plot_values,showResults, out_dir = '~',fi
       pdf(file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
     }
 
+  areas <- c()
+  for (i in 3:dim(radar_plot_mat)[1]){
+    areas<- c(areas,sum(sapply(1:length(radar_plot_mat[i,]),function(x) if(x < length(radar_plot_mat[i,])){radar_plot_mat[i,x] * radar_plot_mat[i,x+1]}else{radar_plot_mat[i,x]* radar_plot_mat[i,1]})))
+
+  }
+  areas <- areas /8
+  # print(areas)
+  legend_labels <- cbind(1:length(names(radar_plot_values)),paste0(names(radar_plot_values),' (',format(areas,digits=2),')'))
+  legend_labels <- legend_labels[order(-areas),]
   radarchart(as.data.frame(radar_plot_mat),
     maxmin = T,axistype = 1,
     cglcol = 'grey',axislabcol = 'black',
@@ -895,8 +904,8 @@ make_radar_chart_loc <- function(radar_plot_values,showResults, out_dir = '~',fi
     vlcex = 0.8,
     title='Signature Summary',
     pty=16, plty=1,plwd = 2)
-    legend('topright', legend=names(radar_plot_values), seg.len=0.5, title="Datasets", pch=1, 
-       bty="n" ,lwd=3, horiz=FALSE, col=1:length(names(radar_plot_values)),cex=0.8)
+    legend('topright', legend=legend_labels[,2], seg.len=0.5, title="Datasets", pch=1, 
+       bty="n" ,lwd=3, horiz=FALSE, col=order(-areas),cex=0.8)
   if(showResults){
     dev.copy(pdf,file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
   }
