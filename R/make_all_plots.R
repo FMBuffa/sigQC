@@ -101,6 +101,10 @@ make_all_plots <- function(gene_sig, mRNA_expr_matrix, names=NULL , covariates=N
       install.packages("fmsb")
       library(fmsb)
     }
+    if(!require("moments")){
+      install.packages("moments")
+      library(moments)
+    }
     dir.create(out_dir)
    # write.table('',file=file.path(out_dir, "log.log"))
     #LOG file path
@@ -480,6 +484,8 @@ eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NU
   for (i in 1:length(names)){
     sd_genes <- apply(mRNA_expr_matrix[[names[i]]],1,function(x) sd(as.numeric(x),na.rm=T) )
     mean_genes <- apply(mRNA_expr_matrix[[names[i]]],1,function(x) mean(as.numeric(x),na.rm=T))
+    radar_plot_values[[names[i]]]['sd_median_ratio'] = median(na.omit(sd_genes[gene_sig]))/(median(na.omit(sd_genes)) +median(na.omit(sd_genes[gene_sig])))
+    radar_plot_values[[names[i]]]['abs_skewness_ratio'] = abs(skewness(na.omit(mean_genes[gene_sig])))/(abs(skewness(na.omit(mean_genes))) +  abs(skewness(na.omit(mean_genes[gene_sig]))))
 
     plot(mean_genes,sd_genes,pch=19,col='grey',
          main=paste0('Mean vs SD for all genes and signature genes\n',names[i]),
@@ -540,7 +546,15 @@ eval_var_loc <- function(gene_sig, mRNA_expr_matrix,names, out_dir = '~',file=NU
   for (i in 1:length(names)){
   	coeff_of_var <- apply(mRNA_expr_matrix[[names[i]]],1,function(x) sd(as.numeric(na.omit(x)),na.rm=T) / mean(as.numeric(na.omit(x)),na.rm=T))
   	coeff_of_var_gene_sig <- coeff_of_var[gene_sig]
-    radar_plot_values[[names[i]]]['coeff_of_var_ratio'] <- median(na.omit(coeff_of_var_gene_sig))/median(na.omit(coeff_of_var))
+    quantiles_considered <- quantile(coeff_of_var,probs=c(0.9,0.75,0.5),na.rm=T)
+    prop_top_10_percent <- sum(na.omit(coeff_of_var_gene_sig) >= quantiles_considered[1]) / length(na.omit(coeff_of_var_gene_sig))
+    prop_top_25_percent <- sum(na.omit(coeff_of_var_gene_sig) >= quantiles_considered[2]) / length(na.omit(coeff_of_var_gene_sig))
+    prop_top_50_percent <- sum(na.omit(coeff_of_var_gene_sig) >= quantiles_considered[3]) / length(na.omit(coeff_of_var_gene_sig))
+    radar_plot_values[[names[i]]]['prop_top_10_percent'] <- prop_top_10_percent
+    radar_plot_values[[names[i]]]['prop_top_25_percent'] <- prop_top_25_percent
+    radar_plot_values[[names[i]]]['prop_top_50_percent'] <- prop_top_50_percent
+    
+    radar_plot_values[[names[i]]]['coeff_of_var_ratio'] <- median(na.omit(coeff_of_var_gene_sig))/(median(na.omit(coeff_of_var)) + median(na.omit(coeff_of_var_gene_sig)))
 
   	# boxplot(na.omit(coeff_of_var),na.omit(coeff_of_var_gene_sig),#log="y",
   		# names=c('All Genes','Gene Signature'),
@@ -865,15 +879,16 @@ eval_compactness_loc <- function(gene_sig, mRNA_expr_matrix, names, out_dir = '~
   }
   dev.off()
   radar_plot_values
+
 }
 
 make_radar_chart_loc <- function(radar_plot_values,showResults, out_dir = '~',file){
   radar_plot_mat <- c()
-  # print(radar_plot_values)
+  print(radar_plot_values)
   t <- sapply(radar_plot_values,function(x) radar_plot_mat <<- rbind(radar_plot_mat,x))
   radar_plot_mat <- rbind(rep(1,length(radar_plot_values[[1]])),rep(0,length(radar_plot_values[[1]])),radar_plot_mat)
   radar_plot_mat <- abs(radar_plot_mat)
-  # print(radar_plot_mat)
+  print(radar_plot_mat)
   row.names(radar_plot_mat) <- c('max','min',names(radar_plot_values))
 
    if (showResults){
@@ -887,16 +902,17 @@ make_radar_chart_loc <- function(radar_plot_values,showResults, out_dir = '~',fi
     areas<- c(areas,sum(sapply(1:length(radar_plot_mat[i,]),function(x) if(x < length(radar_plot_mat[i,])){radar_plot_mat[i,x] * radar_plot_mat[i,x+1]}else{radar_plot_mat[i,x]* radar_plot_mat[i,1]})))
 
   }
-  areas <- areas /8
+  areas <- areas /dim(radar_plot_mat)[2]
   # print(areas)
   legend_labels <- cbind(1:length(names(radar_plot_values)),paste0(names(radar_plot_values),' (',format(areas,digits=2),')'))
   legend_labels <- legend_labels[order(-areas),]
+ 
   radarchart(as.data.frame(radar_plot_mat),
     maxmin = T,axistype = 1,
     cglcol = 'grey',axislabcol = 'black',
     caxislabels = seq(0,1,length.out = 5),
     cglty = 1,cglwd = 1,calcex = 0.5,
-    vlabels = c('Coef. of Var. \nRatio',
+    vlabels = c('Ratio of\nMed. SD','Skew Ratio','Prop in\ntop 10% var','Prop in\ntop 25% var','Prop in\ntop 50% var','Coef. of Var. \nRatio',
       'Med. non-NA Prop.','Med. Prop.\nOver Thresh.',
       'Med. Autocor.','Mean, Med.\nScore Cor.',
       'PCA1, Med.\nScore Cor.','Mean, PCA1\nScore Cor.',
