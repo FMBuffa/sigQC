@@ -4,15 +4,18 @@
 \alias{make_all_plots}
 \title{make_all_plots.R}
 \usage{
-make_all_plots(gene_sig, mRNA_expr_matrix, names = NULL, covariates = NULL,
-  thresholds = NULL, out_dir = "~", showResults = FALSE)
+make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
+  names_datasets = NULL, covariates = NULL, thresholds = NULL,
+  out_dir = "~", showResults = FALSE)
 }
 \arguments{
-\item{gene_sig}{A list of genes representing the gene signature to be tested.}
+\item{gene_sigs_list}{A list of genes representing the gene signature to be tested.}
 
 \item{mRNA_expr_matrix}{A list of expression matrices}
 
-\item{names}{The names of the different datasets contained in mRNA_expr_matrix}
+\item{names_sigs}{The names of the genes in the signature}
+
+\item{names_datasets}{The names of the different datasets contained in mRNA_expr_matrix}
 
 \item{covariates}{A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap}
 
