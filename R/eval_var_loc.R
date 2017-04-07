@@ -1,0 +1,104 @@
+eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
+  #calculate the number of rows and columns in the image
+  num_rows <- length(names_sigs)#ceiling(sqrt(length(names)))
+  num_cols <- length(names_datasets)#ceiling(length(names)/num_rows)
+  # pdf(paste0(out_dir,'/sig_expr_var.pdf'))
+  if (showResults){
+    grDevices::dev.new()
+  }else{
+    grDevices::pdf(file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10)
+  }
+
+  gene_sig_mean_sd_table <- list()
+  graphics::par(mfrow=c(num_rows,num_cols))
+  for(k in 1:length(names_sigs)){
+    gene_sig <- gene_sigs_list[[names_sigs[k]]]
+    for (i in 1:length(names_datasets)){
+      sd_genes <- apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x){stats::sd(as.numeric(x),na.rm=T) })
+      mean_genes <- apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x) {mean(as.numeric(x),na.rm=T)})
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['sd_median_ratio'] = stats::median(stats::na.omit(sd_genes[gene_sig]))/(stats::median(stats::na.omit(sd_genes)) +stats::median(stats::na.omit(sd_genes[gene_sig])))
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['abs_skewness_ratio'] = abs(moments:: skewness(stats::na.omit(mean_genes[gene_sig])))/(abs(moments:: skewness(stats::na.omit(mean_genes))) +  abs(moments:: skewness(stats::na.omit(mean_genes[gene_sig]))))
+
+      graphics::plot(mean_genes,sd_genes,pch=19,col='grey',
+                     main=paste0('Mean vs SD for all genes and signature genes\n',names_datasets[i], ' ',names_sigs[k]),
+                     xlab='Mean',
+                     ylab='Standard deviation')
+      graphics::points(mean_genes[gene_sig],sd_genes[gene_sig],pch=19,col='red')
+      quants_mean <- stats::quantile(mean_genes*is.finite(mean_genes),probs=c(0.1,0.25,0.5,0.75,0.9),na.rm=T)
+      graphics::abline(v=quants_mean[1],lty=3) #add line at 10%
+      graphics::abline(v=quants_mean[2],lty=3) #add line at 25%
+      graphics::abline(v=quants_mean[3],lty=3) #add line at 50%
+      graphics::abline(v=quants_mean[4],lty=3) #add line at 75%
+      graphics::abline(v=quants_mean[5],lty=3) #add line at 90%
+
+      graphics::mtext(side = 3, line = 0, at=quants_mean[1], '10%',cex=0.4)
+      graphics::mtext(side = 3, line = 0.4, at= quants_mean[2], '25%',cex=0.4)
+      graphics::mtext(side = 3, line = 0, at= quants_mean[3], '50%',cex=0.4)
+      graphics::mtext(side = 3, line = 0.4, at=quants_mean[4], '75%',cex=0.4)
+      graphics::mtext(side = 3, line = 0, at = quants_mean[5], '90%',cex=0.4)
+
+      quants_sd <- stats::quantile(sd_genes*is.finite(sd_genes),probs=c(0.1,0.25,0.5,0.75,0.9),na.rm=T)
+      graphics::abline(h=quants_sd[1],lty=3) #add line at 10%
+      graphics::abline(h=quants_sd[2],lty=3) #add line at 25%
+      graphics::abline(h=quants_sd[3],lty=3) #add line at 50%
+      graphics::abline(h=quants_sd[4],lty=3) #add line at 75%
+      graphics::abline(h=quants_sd[5],lty=3) #add line at 90%
+
+      graphics::mtext(side = 4, line = 0, at=quants_sd[1], '10%',cex=0.4)
+      graphics::mtext(side = 4, line = 0.4, at= quants_sd[2], '25%',cex=0.4)
+      graphics::mtext(side = 4, line = 0.8, at= quants_sd[3], '50%',cex=0.4)
+      graphics::mtext(side = 4, line = 0.4, at=quants_sd[4], '75%',cex=0.4)
+      graphics::mtext(side = 4, line = 0, at = quants_sd[5], '90%',cex=0.4)
+
+      gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]] <- cbind(mean_genes[gene_sig],sd_genes[gene_sig])
+      colnames(gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]]) <- c("Mean","SD")
+
+    }
+  }
+  if(showResults){
+    grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10)
+  }
+  grDevices::dev.off()
+  cat('Mean vs SD graphs created successfully.\n', file=file)
+
+
+  #now let's output the tables, one for each dataset considered
+  dir.create(file.path(out_dir,'mean_sd_tables'))
+  for(k in 1:length(names_sigs)){
+    for (i in 1:length(names_datasets)){
+      utils::write.table(gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]],file=file.path(out_dir,'mean_sd_tables', paste0('mean_sd_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
+
+    }
+  }
+  cat('Mean vs SD tables written to file successfully.\n', file=file)
+
+
+  #the following is the code for the original variable boxplots
+  # 	dev.new()
+  # graphics::par(mfrow=c(num_rows,num_cols))
+  for(k in 1:length(names_sigs)){
+    gene_sig <- gene_sigs_list[[names_sigs[k]]]
+    for (i in 1:length(names_datasets)){
+      coeff_of_var <- apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x){stats::sd(as.numeric(stats::na.omit(x)),na.rm=T) / mean(as.numeric(stats::na.omit(x)),na.rm=T)})
+      coeff_of_var_gene_sig <- coeff_of_var[gene_sig]
+      quantiles_considered <- stats::quantile(coeff_of_var,probs=c(0.9,0.75,0.5),na.rm=T)
+      prop_top_10_percent <- sum(stats::na.omit(coeff_of_var_gene_sig) >= quantiles_considered[1]) / length(stats::na.omit(coeff_of_var_gene_sig))
+      prop_top_25_percent <- sum(stats::na.omit(coeff_of_var_gene_sig) >= quantiles_considered[2]) / length(stats::na.omit(coeff_of_var_gene_sig))
+      prop_top_50_percent <- sum(stats::na.omit(coeff_of_var_gene_sig) >= quantiles_considered[3]) / length(stats::na.omit(coeff_of_var_gene_sig))
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_top_10_percent'] <- prop_top_10_percent
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_top_25_percent'] <- prop_top_25_percent
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_top_50_percent'] <- prop_top_50_percent
+
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['coeff_of_var_ratio'] <- stats::median(stats::na.omit(coeff_of_var_gene_sig))/(stats::median(stats::na.omit(coeff_of_var)) + stats::median(stats::na.omit(coeff_of_var_gene_sig)))
+
+      # boxplot(stats::na.omit(coeff_of_var),stats::na.omit(coeff_of_var_gene_sig),#log="y",
+      # names=c('All Genes','Gene Signature'),
+      # ylab='Coefficient of Variation',
+      # main=paste0('Variance of signature genes vs. all genes\n',names[i]))
+    }
+  }
+  # dev.copy(pdf,paste0(out_dir,'/sig_expr_var.pdf'))
+
+  # dev.off()
+  radar_plot_values
+}
