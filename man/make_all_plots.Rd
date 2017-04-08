@@ -13,19 +13,19 @@ make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
 
 \item{mRNA_expr_matrix}{A list of expression matrices}
 
-\item{names_sigs}{The names of the genes in the signature}
+\item{names_sigs}{The names of the gene signatures (one name per gene signature, in gene_sigs_list)}
 
 \item{names_datasets}{The names of the different datasets contained in mRNA_expr_matrix}
 
 \item{covariates}{A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap}
 
-\item{thresholds}{A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise.}
+\item{thresholds}{A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise. One threshold per dataset, in the same order as the dataset list.}
 
 \item{out_dir}{A path to the directory where the resulting output files are written}
 
 \item{showResults}{Tells if open dialog boxes showing the computed results. Default is FALSE}
 }
 \description{
-Makes the plots in each of the subfunctions.
+Makes the plots in each of the subfunctions. This is the only function that should be called by the user.
 }
 \keyword{make_all_plots}
