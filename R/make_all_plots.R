@@ -1,12 +1,12 @@
 #' make_all_plots.R
 #'
-#' Makes the plots in each of the subfunctions.
+#' Makes the plots in each of the subfunctions. This is the only function that should be called by the user.
 #' @param gene_sigs_list A list of genes representing the gene signature to be tested.
 #' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_sigs The names of the genes in the signature
+#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
 #' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
 #' @param covariates A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap
-#' @param thresholds A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise.
+#' @param thresholds A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise. One threshold per dataset, in the same order as the dataset list.
 #' @param out_dir A path to the directory where the resulting output files are written
 #' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
 #' @keywords make_all_plots
@@ -26,7 +26,6 @@
 make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,names_datasets=NULL , covariates=NULL, thresholds=NULL, out_dir = '~', showResults = FALSE){
   ###########Check the input
  radar_plot_values <- list();
-
 
   if(missing(gene_sigs_list)){
     stop("Need to specify a list of gene signatures. The IDs must match those in the expression matrices.")
@@ -103,6 +102,4 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
     print("Error: the length of names is not matching the number of elements in the expression matrices list.
           You need to have a name for every dataset used.")
   }
-  # radar_plot_values
-  # print(radar_plot_values)
 }

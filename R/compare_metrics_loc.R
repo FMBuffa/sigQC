@@ -1,3 +1,18 @@
+#' compare_metrics_loc.R
+#'
+#' This function creates the plots to compare various signature summary statistic metrics against each other 
+#' That is, compares the mean, median and first principal component with each other, and also produces PCA vs variance
+#' plot for the first 10 principal components of the dataset
+#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
+#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+#' @param mRNA_expr_matrix A list of expression matrices
+#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+#' @param out_dir A path to the directory where the resulting output files are written
+#' @param file File representing the log file where errors can be written
+#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+#' @keywords compare_metrics_loc
+
 compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
   for(k in 1:length(names_sigs)){
@@ -58,40 +73,26 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       graphics::mtext(side = 2, line = 2, 'Median',cex=0.8)
       graphics::mtext(side = 1, line = 2, 'PCA1',cex=0.8)
 
-      #here we put the cor plot of the mean median and pca1
+      #here we put the cor plot of the mean median and pca1 (if we wanted an autocorrelation heatmap of these metrics)
 
-      autocors_mat <- matrix(0,nrow=3,ncol=3)
-      row.names(autocors_mat) <- c('Mean' , 'Median','PCA1')
-      colnames(autocors_mat) <- c('Mean' , 'Median','PCA1')
-      autocors_mat[1,1] <- 1
-      autocors_mat[1,2] <- rho_mean_med
-      autocors_mat[1,3] <- rho_mean_pca1
+      # autocors_mat <- matrix(0,nrow=3,ncol=3)
+      # row.names(autocors_mat) <- c('Mean' , 'Median','PCA1')
+      # colnames(autocors_mat) <- c('Mean' , 'Median','PCA1')
+      # autocors_mat[1,1] <- 1
+      # autocors_mat[1,2] <- rho_mean_med
+      # autocors_mat[1,3] <- rho_mean_pca1
 
-      autocors_mat[2,1] <- rho_mean_med
-      autocors_mat[2,2] <- 1
-      autocors_mat[2,3] <- rho_pca1_med
+      # autocors_mat[2,1] <- rho_mean_med
+      # autocors_mat[2,2] <- 1
+      # autocors_mat[2,3] <- rho_pca1_med
 
-      autocors_mat[3,1] <- rho_mean_pca1
-      autocors_mat[3,2] <- rho_pca1_med
-      autocors_mat[3,3] <- 1
+      # autocors_mat[3,1] <- rho_mean_pca1
+      # autocors_mat[3,2] <- rho_pca1_med
+      # autocors_mat[3,3] <- 1
 
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_med'] <- rho_mean_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_pca1_med'] <- rho_pca1_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_pca1'] <- rho_mean_pca1
-
-
-      # hmaps[[i]] <- gplots::heatmap.2(autocors_mat,
-      #         	col = colorpanel(100,"blue","white","red"),#colorpanel(100,"red","yellow","green"),
-      #          	trace = "none",
-      #          	xlab = NA,
-      #          	na.color="grey",
-      #          	labRow=rownames(autocors_mat),
-      #       	labCol=colnames(autocors_mat),
-      #          	main = paste("Scoring metric correlation"),
-      #          	dendrogram = "none",
-      #          	breaks=seq(-1,1,length.out=101) ,
-      #         	symbreaks = T,
-      #        	Rowv = NA,Colv=NA)# ,margins = c(4,4))
 
       bars_plot <- props_of_variances[1:min(10,length(props_of_variances))]
       graphics::barplot(bars_plot,main="PCA vs proportion\n of variance") #ylim= c(0,1),

@@ -1,8 +1,24 @@
+#' eval_var_loc.R
+#'
+#' This function creates the plots for the measures of variance. It produces the mean vs sd plot, and computes metrics
+#' that are used in the final radar plot such as proportion of signature genes lying in the top 10%, 25%, and 50% of 
+#' overall coefficient of variance across all genes, and the fractional ratio of the skewness of the expression distribution 
+#' of signature genes vs all genes. Also outputs tables containing mean and sd values for each of the signature genes
+#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
+#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+#' @param mRNA_expr_matrix A list of expression matrices
+#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+#' @param out_dir A path to the directory where the resulting output files are written
+#' @param file File representing the log file where errors can be written
+#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+#' @keywords eval_var_loc
+
 eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
-  #calculate the number of rows and columns in the image
+  # calculate the number of rows and columns in the image
   num_rows <- length(names_sigs)#ceiling(sqrt(length(names)))
   num_cols <- length(names_datasets)#ceiling(length(names)/num_rows)
-  # pdf(paste0(out_dir,'/sig_expr_var.pdf'))
+
   if (showResults){
     grDevices::dev.new()
   }else{
@@ -23,6 +39,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
                      main=paste0('Mean vs SD for all genes and signature genes\n',names_datasets[i], ' ',names_sigs[k]),
                      xlab='Mean',
                      ylab='Standard deviation')
+
       graphics::points(mean_genes[gene_sig],sd_genes[gene_sig],pch=19,col='red')
       quants_mean <- stats::quantile(mean_genes*is.finite(mean_genes),probs=c(0.1,0.25,0.5,0.75,0.9),na.rm=T)
       graphics::abline(v=quants_mean[1],lty=3) #add line at 10%
@@ -52,28 +69,25 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
 
       gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]] <- cbind(mean_genes[gene_sig],sd_genes[gene_sig])
       colnames(gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]]) <- c("Mean","SD")
-
     }
   }
+
   if(showResults){
     grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10)
   }
   grDevices::dev.off()
   cat('Mean vs SD graphs created successfully.\n', file=file)
 
-
   #now let's output the tables, one for each dataset considered
   dir.create(file.path(out_dir,'mean_sd_tables'))
   for(k in 1:length(names_sigs)){
     for (i in 1:length(names_datasets)){
       utils::write.table(gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]],file=file.path(out_dir,'mean_sd_tables', paste0('mean_sd_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
-
     }
   }
   cat('Mean vs SD tables written to file successfully.\n', file=file)
 
-
-  #the following is the code for the original variable boxplots
+  #the following is the code for computing coefficient of variation across signature genes and all genes
   # 	dev.new()
   # graphics::par(mfrow=c(num_rows,num_cols))
   for(k in 1:length(names_sigs)){

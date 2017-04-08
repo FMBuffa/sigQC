@@ -1,8 +1,27 @@
+#' eval_compactness_loc.R
+#'
+#' This function creates the plots of autocorrelation, as well as the rank product computation. Specifically, it creates
+#' plots for heatmap of autocorrelation, density plot of autocorrelation values, and if there is more than one dataset, for
+#' each individual gene signature, will do a rank product analysis on the lists of median autocorrelation coefficients to 
+#' identify genes consistently low ranking in autocorrelation among more than one dataset.
+#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
+#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+#' @param mRNA_expr_matrix A list of expression matrices
+#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+#' @param out_dir A path to the directory where the resulting output files are written
+#' @param file File representing the log file where errors can be written
+#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+#' @keywords eval_compactness_loc
+
 eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
   if (showResults){
     grDevices::dev.new()
   }
+  # else{
+  #   grDevices::pdf(file.path(out_dir, 'sig_autocor_hmps.pdf'),width=10,height=10)
+  # }
   # pdf(file.path(out_dir,'sig_autocor_hmps.pdf'),width=10,height=10)
 
   graphics::par(cex.main=0.8,cex.lab = 0.6,oma=c(2,0,0,0),mar=c(0,0,0,0))
@@ -30,14 +49,15 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
                          Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=0.5,cexCol=0.5,margins=c(4,4))
     },
     error=function(err){
-      #      print(paste0("There was an error, likely due to NA values in data: ", err))
       cat(paste0("There was an error, likely due to NA values in data, for dataset: ",names_datasets[dataset_ind]," ", names_sigs[sig_ind]," ", err,'\n'), file=file)
 
     })
     grab_grob()
   })
   draw.heatmaps(hmaps,names_datasets,names_sigs)
+  # if(showResults){
   grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_hmps.pdf'),width=10,height=10)
+  # }
   grDevices::dev.off()
 
   if (showResults){
@@ -106,6 +126,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     cat("Autocorrelation metrics successfully computed.\n", file=file)
 
     #now we take the median of the genes' autocorrelation for each gene in each dataset and then look at the rank product over the different cancer types
+    #note that the rank product analysis is only done if there is more than one dataset (otherwise not done, and is doen separately for each gene signature)
     if (length(names_datasets) > 1){
       overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig)),ncol=length(names_datasets))
       row.names(overall_rank_mat) <- unique(gene_sig)
@@ -119,7 +140,12 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       # require(RankProd)
       RP.out <-RankProd::RP(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),logged = F,gene.names=rownames(overall_rank_mat))
       RankProd::plotRP(RP.out ,cutoff=0.05)
-      RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=F, gene.names=intersect(gene_sig,rownames(mRNA_expr_matrix[[names_datasets[i]]])))
+      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=F, gene.names=intersect(gene_sig,rownames(mRNA_expr_matrix[[names_datasets[i]]])))
+      # output the rank product table to the screen
+      print(table_rank_prod)
+      # output the rank product table to file
+      utils::write.table(table_rank_prod,file=file.path(out_dir, paste0('rank_product_tables_',names_sigs[k],'.txt')),quote=F,sep='\t')
+
       cat("Autocorrelation rank product successfully computed.\n", file=file)
 
     }else{

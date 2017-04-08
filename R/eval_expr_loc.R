@@ -1,5 +1,23 @@
+#' eval_expr_loc.R
+#'
+#' This function creates the plots of measures of expression. Takes in the list of thresholds of expression, and if this is not
+#' specified by the user, uses the median of all genes across all samples as the threshold cutoff for the barchart presenting 
+#' proportion of samples expressing above the threshold. Also produces similar barchart for proportion of samples with NA values 
+#' for each of the genes considered. Creates density plots as well for these barcharts for easy viewing of distribution in the case
+#' of a large number of signature genes. 
+#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
+#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+#' @param mRNA_expr_matrix A list of expression matrices
+#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+#' @param thresholds A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise. One threshold per dataset, in the same order as the dataset list.
+#' @param out_dir A path to the directory where the resulting output files are written
+#' @param file File representing the log file where errors can be written
+#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+#' @keywords eval_expr_loc
+
 eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets, thresholds = NULL, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
-  #calculate the number of rows and columns in the image
+  #calculate the number of rows and columns in the final plot
   num_rows <- length(names_sigs)#ceiling(sqrt(length(names)))
   num_cols <- length(names_datasets)#ceiling(length(names)/num_rows)
 
@@ -70,7 +88,6 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
   }
   grDevices::dev.off()
 
-
   if (showResults){
     grDevices::dev.new()
   }else{
@@ -85,7 +102,6 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       genes_expr <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
       gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2]))
       graphics::plot(stats::density(stats::na.omit(gene_expr_vals),adjust=0.25),main=paste0("Signature gene expression across samples\n",names_datasets[i], ' ',names_sigs[k]),ylab="Density")
-
     }
   }
   if(showResults){
@@ -94,6 +110,5 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
   grDevices::dev.off()
   cat('Expression and density graphs created successfully.\n', file=file)
 
-  # print(paste0("Min expression occurs for gene ID ",names(gene_expr_vals)[1], ", with ", round(gene_expr_vals[1]*100,2),"% non-zero expression."))
   radar_plot_values
 }
