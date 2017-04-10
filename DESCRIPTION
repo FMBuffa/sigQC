@@ -1,7 +1,7 @@
 Package: sigQC
 Title: Quality Control Metrics for Gene Signatures
 Version: 0.1
-Authors@R: c(person(given = "Andrew", family = "Dhawan", email="andrew.dhawan@oncology.ox.ac.uk", role = c("aut","cre")), person(given = "Alessandro", family = "Barberis", email="alessandro.barberis@oncology.ox.ac.uk", role = c("aut")), person(given = "Wei-Chen", family = "Cheng", email="wei-chen.cheng@oncology.ox.ac.uk", role = c("aut")), person(given = "Francesca", family = "Buffa", email="francesca.buffa@oncology.ox.ac.uk", role = c("aut","cre"))) 
+Authors@R: c(person(given = "Andrew", family = "Dhawan", email="andrew.dhawan@oncology.ox.ac.uk", role = c("aut","cre")), person(given = "Alessandro", family = "Barberis", email="alessandro.barberis@oncology.ox.ac.uk", role = c("aut","cre")), person(given = "Wei-Chen", family = "Cheng", email="wei-chen.cheng@oncology.ox.ac.uk", role = c("aut")), person(given = "Francesca", family = "Buffa", email="francesca.buffa@oncology.ox.ac.uk", role = c("aut","cre"))) 
 Description: This package implements gene signature quality control metrics. Namely, enables the visualization of properties such as expression, variability, autocorrelation, and comparison of methods of standardisation and scoring metrics.
 Depends: R (>= 3.3.0)
 License: GNU GENERAL PUBLIC LICENSE
