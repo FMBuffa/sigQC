@@ -1,18 +1,18 @@
-#' eval_compactness_loc.R
-#'
-#' This function creates the plots of autocorrelation, as well as the rank product computation. Specifically, it creates
-#' plots for heatmap of autocorrelation, density plot of autocorrelation values, and if there is more than one dataset, for
-#' each individual gene signature, will do a rank product analysis on the lists of median autocorrelation coefficients to 
-#' identify genes consistently low ranking in autocorrelation among more than one dataset.
-#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
-#' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
-#' @param out_dir A path to the directory where the resulting output files are written
-#' @param file File representing the log file where errors can be written
-#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
-#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
-#' @keywords eval_compactness_loc
+# eval_compactness_loc.R
+#
+# This function creates the plots of autocorrelation, as well as the rank product computation. Specifically, it creates
+# plots for heatmap of autocorrelation, density plot of autocorrelation values, and if there is more than one dataset, for
+# each individual gene signature, will do a rank product analysis on the lists of median autocorrelation coefficients to
+# identify genes consistently low ranking in autocorrelation among more than one dataset.
+# @param gene_sigs_list A list of genes representing the gene signature to be tested.
+# @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+# @param mRNA_expr_matrix A list of expression matrices
+# @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+# @param out_dir A path to the directory where the resulting output files are written
+# @param file File representing the log file where errors can be written
+# @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+# @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+# @keywords eval_compactness_loc
 
 eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
@@ -32,7 +32,9 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     }
     sig_ind <- ceiling(i/length(names_datasets))
     gene_sig <- gene_sigs_list[[names_sigs[sig_ind]]]
-    autocors <- stats::cor(t(stats::na.omit(mRNA_expr_matrix[[names_datasets[dataset_ind]]][intersect(gene_sig,rownames(mRNA_expr_matrix[[names_datasets[dataset_ind]]])),])),method='spearman')
+    data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]]
+    inter <- intersect(gene_sig[,1], row.names(data.matrix))
+    autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
 
     tryCatch({
       gplots::heatmap.2( stats::na.omit(autocors),
@@ -71,7 +73,9 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     for (i in 1:length(names_datasets) ){
-      autocors <- stats::cor(stats::na.omit(t(mRNA_expr_matrix[[names_datasets[i]]][intersect(gene_sig,rownames(mRNA_expr_matrix[[names_datasets[i]]])),])),method='spearman')
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+      autocors <- stats::cor(stats::na.omit(t(data.matrix[inter,])),method='spearman')
       cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$y)
       if (max_dens  < cur_max){
         max_dens <- cur_max
@@ -82,7 +86,9 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     for (i in 1:length(names_datasets) ){
-      autocors <- stats::cor(t(stats::na.omit(mRNA_expr_matrix[[names_datasets[i]]][gene_sig,])),method='spearman')
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+      autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
       if ((i ==1) && (k==1)){
         graphics::plot(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),col=i,main=NA,lwd=2,lty=k)
       }else{
@@ -128,18 +134,25 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     #now we take the median of the genes' autocorrelation for each gene in each dataset and then look at the rank product over the different cancer types
     #note that the rank product analysis is only done if there is more than one dataset (otherwise not done, and is doen separately for each gene signature)
     if (length(names_datasets) > 1){
-      overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig)),ncol=length(names_datasets))
-      row.names(overall_rank_mat) <- unique(gene_sig)
+      overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig[,1])),ncol=length(names_datasets))
+      row.names(overall_rank_mat) <- unique(gene_sig[,1])
       colnames(overall_rank_mat) <- names_datasets
       for (i in 1:length(names_datasets)){
-        autocors <- stats::cor(t(stats::na.omit(mRNA_expr_matrix[[names_datasets[i]]][intersect(unique(gene_sig),rownames(mRNA_expr_matrix[[names_datasets[i]]])),])),method='spearman')
-        median_scores <- apply(autocors,2,function(x) {stats::median(stats::na.omit(x))})
-        overall_rank_mat[names(median_scores),i] <- median_scores
+        data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+        inter = intersect(unique(gene_sig[,1]),rownames(data.matrix))
+        autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
+        median_scores <- as.matrix(apply(autocors,2,function(x) {stats::median(stats::na.omit(x))}))
+        overall_rank_mat[rownames(median_scores),i] <- median_scores[,1]
       }
 
       # require(RankProd)
       RP.out <-RankProd::RP(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),logged = F,gene.names=rownames(overall_rank_mat))
       RankProd::plotRP(RP.out ,cutoff=0.05)
+      ########################################
+      # CHECK THE CODE IN THIS PART
+      #
+      #
+      ########################################
       table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=F, gene.names=intersect(gene_sig,rownames(mRNA_expr_matrix[[names_datasets[i]]])))
       # output the rank product table to the screen
       print(table_rank_prod)

@@ -1,18 +1,18 @@
-#' eval_var_loc.R
-#'
-#' This function creates the plots for the measures of variance. It produces the mean vs sd plot, and computes metrics
-#' that are used in the final radar plot such as proportion of signature genes lying in the top 10%, 25%, and 50% of 
-#' overall coefficient of variance across all genes, and the fractional ratio of the skewness of the expression distribution 
-#' of signature genes vs all genes. Also outputs tables containing mean and sd values for each of the signature genes
-#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
-#' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
-#' @param out_dir A path to the directory where the resulting output files are written
-#' @param file File representing the log file where errors can be written
-#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
-#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
-#' @keywords eval_var_loc
+# eval_var_loc.R
+#
+# This function creates the plots for the measures of variance. It produces the mean vs sd plot, and computes metrics
+# that are used in the final radar plot such as proportion of signature genes lying in the top 10%, 25%, and 50% of
+# overall coefficient of variance across all genes, and the fractional ratio of the skewness of the expression distribution
+# of signature genes vs all genes. Also outputs tables containing mean and sd values for each of the signature genes
+# @param gene_sigs_list A list of genes representing the gene signature to be tested.
+# @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+# @param mRNA_expr_matrix A list of expression matrices
+# @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+# @param out_dir A path to the directory where the resulting output files are written
+# @param file File representing the log file where errors can be written
+# @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+# @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+# @keywords eval_var_loc
 
 eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # calculate the number of rows and columns in the image
@@ -30,17 +30,21 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     for (i in 1:length(names_datasets)){
-      sd_genes <- apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x){stats::sd(as.numeric(x),na.rm=T) })
-      mean_genes <- apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x) {mean(as.numeric(x),na.rm=T)})
-      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['sd_median_ratio'] = stats::median(stats::na.omit(sd_genes[gene_sig]))/(stats::median(stats::na.omit(sd_genes)) +stats::median(stats::na.omit(sd_genes[gene_sig])))
-      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['abs_skewness_ratio'] = abs(moments:: skewness(stats::na.omit(mean_genes[gene_sig])))/(abs(moments:: skewness(stats::na.omit(mean_genes))) +  abs(moments:: skewness(stats::na.omit(mean_genes[gene_sig]))))
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+
+      sd_genes <- as.matrix(apply(data.matrix,1,function(x){stats::sd(as.numeric(x),na.rm=T) }))
+      mean_genes <- as.matrix(apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x) {mean(as.numeric(x),na.rm=T)}))
+      stats::median(stats::na.omit(sd_genes[inter, 1]))/(stats::median(stats::na.omit(sd_genes)) +stats::median(stats::na.omit(sd_genes[inter, 1])))
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['sd_median_ratio'] = stats::median(stats::na.omit(sd_genes[inter,1]))/(stats::median(stats::na.omit(sd_genes)) +stats::median(stats::na.omit(sd_genes[inter,1])))
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['abs_skewness_ratio'] = abs(moments:: skewness(stats::na.omit(mean_genes[inter, 1])))/(abs(moments:: skewness(stats::na.omit(mean_genes))) +  abs(moments:: skewness(stats::na.omit(mean_genes[inter, 1]))))
 
       graphics::plot(mean_genes,sd_genes,pch=19,col='grey',
                      main=paste0('Mean vs SD for all genes and signature genes\n',names_datasets[i], ' ',names_sigs[k]),
                      xlab='Mean',
                      ylab='Standard deviation')
 
-      graphics::points(mean_genes[gene_sig],sd_genes[gene_sig],pch=19,col='red')
+      graphics::points(mean_genes[inter, 1],sd_genes[inter,1],pch=19,col='red')
       quants_mean <- stats::quantile(mean_genes*is.finite(mean_genes),probs=c(0.1,0.25,0.5,0.75,0.9),na.rm=T)
       graphics::abline(v=quants_mean[1],lty=3) #add line at 10%
       graphics::abline(v=quants_mean[2],lty=3) #add line at 25%
@@ -67,7 +71,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
       graphics::mtext(side = 4, line = 0.4, at=quants_sd[4], '75%',cex=0.4)
       graphics::mtext(side = 4, line = 0, at = quants_sd[5], '90%',cex=0.4)
 
-      gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]] <- cbind(mean_genes[gene_sig],sd_genes[gene_sig])
+      gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]] <- cbind(mean_genes[inter, 1],sd_genes[inter, 1])
       colnames(gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]]) <- c("Mean","SD")
     }
   }
@@ -93,8 +97,11 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     for (i in 1:length(names_datasets)){
-      coeff_of_var <- apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x){stats::sd(as.numeric(stats::na.omit(x)),na.rm=T) / mean(as.numeric(stats::na.omit(x)),na.rm=T)})
-      coeff_of_var_gene_sig <- coeff_of_var[gene_sig]
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+
+      coeff_of_var <- as.matrix(apply(data.matrix,1,function(x){stats::sd(as.numeric(stats::na.omit(x)),na.rm=T) / mean(as.numeric(stats::na.omit(x)),na.rm=T)}))
+      coeff_of_var_gene_sig <- coeff_of_var[inter, 1]
       quantiles_considered <- stats::quantile(coeff_of_var,probs=c(0.9,0.75,0.5),na.rm=T)
       prop_top_10_percent <- sum(stats::na.omit(coeff_of_var_gene_sig) >= quantiles_considered[1]) / length(stats::na.omit(coeff_of_var_gene_sig))
       prop_top_25_percent <- sum(stats::na.omit(coeff_of_var_gene_sig) >= quantiles_considered[2]) / length(stats::na.omit(coeff_of_var_gene_sig))

@@ -1,17 +1,17 @@
-#' compare_metrics_loc.R
-#'
-#' This function creates the plots to compare various signature summary statistic metrics against each other 
-#' That is, compares the mean, median and first principal component with each other, and also produces PCA vs variance
-#' plot for the first 10 principal components of the dataset
-#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
-#' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
-#' @param out_dir A path to the directory where the resulting output files are written
-#' @param file File representing the log file where errors can be written
-#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
-#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
-#' @keywords compare_metrics_loc
+# compare_metrics_loc.R
+#
+# This function creates the plots to compare various signature summary statistic metrics against each other
+# That is, compares the mean, median and first principal component with each other, and also produces PCA vs variance
+# plot for the first 10 principal components of the dataset
+# @param gene_sigs_list A list of genes representing the gene signature to be tested.
+# @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+# @param mRNA_expr_matrix A list of expression matrices
+# @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+# @param out_dir A path to the directory where the resulting output files are written
+# @param file File representing the log file where errors can be written
+# @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+# @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+# @keywords compare_metrics_loc
 
 compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
@@ -26,11 +26,13 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
 
     graphics::par(mfcol = c(4,length(names_datasets)),mar=c(4,4,4,4))
     for ( i in 1:length(names_datasets)){
-      mRNA_expr_matrix[[names_datasets[i]]][!(is.finite(as.matrix(mRNA_expr_matrix[[names_datasets[i]]])))] <- NA
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      data.matrix[!(is.finite(as.matrix(data.matrix)))] <- NA
+      inter = intersect(gene_sig[,1],rownames(data.matrix))
 
-      med_scores <- apply(mRNA_expr_matrix[[names_datasets[i]]][gene_sig,],2,function(x){stats::median(stats::na.omit(x))})
-      mean_scores <- apply(mRNA_expr_matrix[[names_datasets[i]]][gene_sig,],2,function(x){mean(stats::na.omit(x))})
-      pca1_scores <- stats::prcomp(stats::na.omit(t(mRNA_expr_matrix[[names_datasets[i]]][gene_sig,])),retx=T)
+      med_scores <- apply(data.matrix[inter,],2,function(x){stats::median(stats::na.omit(x))})
+      mean_scores <- apply(data.matrix[inter,],2,function(x){mean(stats::na.omit(x))})
+      pca1_scores <- stats::prcomp(stats::na.omit(t(data.matrix[inter,])),retx=T)
       props_of_variances <- pca1_scores$sdev^2/(sum(pca1_scores$sdev^2))
       pca1_scores <- pca1_scores$x[,1]
 

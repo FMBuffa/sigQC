@@ -1,12 +1,12 @@
-#' draw.heatmaps.R
-#'
-#' This function draws the list of heatmaps given to it in a grid on the R graphics area
-#' grid size has number of rows as the number of gene signatures given to the code, and 
-#' number of columns is the number of datasets on which to test the signature
-#' @param hmaps A list of genes representing the gene signature to be tested.
-#' @param names_datasets A list of names of the datasets (for sizing purposes only)
-#' @param names_sigs A list of names of gene signatures input (for sizing purposes only)
-#' @keywords draw.heatmaps 
+# draw.heatmaps.R
+#
+# This function draws the list of heatmaps given to it in a grid on the R graphics area
+# grid size has number of rows as the number of gene signatures given to the code, and
+# number of columns is the number of datasets on which to test the signature
+# @param hmaps A list of genes representing the gene signature to be tested.
+# @param names_datasets A list of names of the datasets (for sizing purposes only)
+# @param names_sigs A list of names of gene signatures input (for sizing purposes only)
+# @keywords draw.heatmaps
 
 draw.heatmaps <- function(hmaps,names_datasets,names_sigs){
   grid::grid.newpage()

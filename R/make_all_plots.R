@@ -1,9 +1,10 @@
 #' make_all_plots.R
 #'
-#' Makes the plots in each of the subfunctions. This is the only function that should be called by the user.
+#' Makes all the plots for the quality control of the list(s) of genes.
+#'
 #' @param gene_sigs_list A list of genes representing the gene signature to be tested.
 #' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+#' @param names_sigs The names of the gene signatures (e.g. Hypoxia, Invasiveness), one name per each signature in gene_sigs_list.
 #' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
 #' @param covariates A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap
 #' @param thresholds A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise. One threshold per dataset, in the same order as the dataset list.
@@ -65,11 +66,11 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
     cat(paste("LOG FILE CREATED: ",Sys.time(), sep=""), file=log.con, sep="\n")
     tryCatch(radar_plot_values <- eval_var_loc(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values),
              error=function(err){
-               cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
+               cat(paste0("Error occurred in eval_var_loc: ",err), file=log.con, sep="\n")
              })
     tryCatch(radar_plot_values <- eval_expr_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,thresholds, out_dir,file=log.con,showResults,radar_plot_values ),
              error=function(err){
-               cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
+               cat(paste0("Error occurred in eval_expr_loc: ",err), file=log.con, sep="\n")
              })
     tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values ),
              error=function(err){
@@ -83,16 +84,16 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
              })
     tryCatch({radar_plot_values <- eval_stan_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values )},
           error=function(err){
-           cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
+           cat(paste0("Error occurred in eval_stan_loc: ",err), file=log.con, sep="\n")
          })
     tryCatch(radar_plot_values <- eval_struct_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,covariates,out_dir,file=log.con,showResults,radar_plot_values ),
              error=function(err){
-               cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
+               cat(paste0("Error occurred in eval_struct_loc: ",err), file=log.con, sep="\n")
              })
     # print(radar_plot_values)
     tryCatch(make_radar_chart_loc(radar_plot_values,showResults,names_sigs, names_datasets,out_dir,file=log.con),
              error=function(err){
-               cat(paste0("Error occurred: ",err), file=log.con, sep="\n")
+               cat(paste0("Error occurred in make_radar_chart_loc: ",err), file=log.con, sep="\n")
              })
 
     if(!showResults)

@@ -1,16 +1,16 @@
-#' make_radar_chart_loc.R
-#'
-#' This function creates the final summary radar plot, adding in all of the metrics that have been pre-computed
-#' in each of the functions called before it in the code. Also computes the ratio of the area contained within 
-#' each of the signature/dataset radar plots to the ratio of the area of the full polygon, and outputs these proportions
-#' within the legend, as a potential summarizing metric that can be used to compare signatures/datasets in a more quantitative fashion.
-#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
-#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
-#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
-#' @param out_dir A path to the directory where the resulting output files are written
-#' @param file File representing the log file where errors can be written
-#' @keywords make_radar_chart_loc
+# make_radar_chart_loc.R
+#
+# This function creates the final summary radar plot, adding in all of the metrics that have been pre-computed
+# in each of the functions called before it in the code. Also computes the ratio of the area contained within
+# each of the signature/dataset radar plots to the ratio of the area of the full polygon, and outputs these proportions
+# within the legend, as a potential summarizing metric that can be used to compare signatures/datasets in a more quantitative fashion.
+# @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+# @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+# @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+# @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+# @param out_dir A path to the directory where the resulting output files are written
+# @param file File representing the log file where errors can be written
+# @keywords make_radar_chart_loc
 
 make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sigs,names_datasets, out_dir = '~',file){
   radar_plot_mat <- c()

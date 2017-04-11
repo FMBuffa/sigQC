@@ -1,16 +1,16 @@
-#' eval_stan_loc.R
-#'
-#' This function creates the plots of effects of standardisation. It checks the correlation between the median and the z-transformed
-#' median of the signature genes in the dataset. 
-#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
-#' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
-#' @param out_dir A path to the directory where the resulting output files are written
-#' @param file File representing the log file where errors can be written
-#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
-#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
-#' @keywords eval_stan_loc
+# eval_stan_loc.R
+#
+# This function creates the plots of effects of standardisation. It checks the correlation between the median and the z-transformed
+# median of the signature genes in the dataset.
+# @param gene_sigs_list A list of genes representing the gene signature to be tested.
+# @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+# @param mRNA_expr_matrix A list of expression matrices
+# @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+# @param out_dir A path to the directory where the resulting output files are written
+# @param file File representing the log file where errors can be written
+# @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+# @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+# @keywords eval_stan_loc
 
 eval_stan_loc <- function(gene_sigs_list, names_sigs,mRNA_expr_matrix, names_datasets,out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values ){
   # defining the size of the plotting area
@@ -27,14 +27,16 @@ eval_stan_loc <- function(gene_sigs_list, names_sigs,mRNA_expr_matrix, names_dat
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     for (i in 1:length(names_datasets)){
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      inter <- intersect(gene_sig[,1], row.names(data.matrix))
 
-      z_transf_mRNA <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
-      for (j in 1:length(gene_sig)){
-        z_transf_mRNA[gene_sig[j],] <- (as.numeric(z_transf_mRNA[gene_sig[j],]) - mean(as.numeric(z_transf_mRNA[gene_sig[j],]),na.rm=T)) / stats::sd(as.numeric(z_transf_mRNA[gene_sig[j],]),na.rm=T)
+      z_transf_mRNA <- data.matrix[inter,]
+      for (gene in inter){
+        z_transf_mRNA[gene,] <- (as.numeric(z_transf_mRNA[gene,]) - mean(as.numeric(z_transf_mRNA[gene,]),na.rm=T)) / stats::sd(as.numeric(z_transf_mRNA[gene,]),na.rm=T)
       }
-      z_transf_scores <- apply(z_transf_mRNA[gene_sig,],2,function(x) {stats::median(stats::na.omit(x))})
+      z_transf_scores <- apply(z_transf_mRNA[inter,],2,function(x) {stats::median(stats::na.omit(x))})
 
-      med_scores <- apply(mRNA_expr_matrix[[names_datasets[i]]][gene_sig,],2,function(x){ stats::median(stats::na.omit(x))})
+      med_scores <- apply(data.matrix[inter,],2,function(x){ stats::median(stats::na.omit(x))})
 
       combined_scores <- as.data.frame(cbind(med_scores,z_transf_scores))
       colnames(combined_scores) <- c('Median',"Z_Median")

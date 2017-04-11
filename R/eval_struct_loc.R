@@ -1,17 +1,17 @@
-#' eval_struct_loc.R
-#'
-#' This function creates the plots to evaluate for signature structure. Produces plots for the 
-#' expression of the signature with hierarchical clustering as well as biclustering plots on binarized data and on non-binarized data
-#' @param gene_sigs_list A list of genes representing the gene signature to be tested.
-#' @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
-#' @param mRNA_expr_matrix A list of expression matrices
-#' @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
-#' @param covariates A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap
-#' @param out_dir A path to the directory where the resulting output files are written
-#' @param file File representing the log file where errors can be written
-#' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
-#' @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
-#' @keywords eval_struct_loc
+# eval_struct_loc.R
+#
+# This function creates the plots to evaluate for signature structure. Produces plots for the
+# expression of the signature with hierarchical clustering as well as biclustering plots on binarized data and on non-binarized data
+# @param gene_sigs_list A list of genes representing the gene signature to be tested.
+# @param names_sigs The names of the gene signatures (one name per gene signature, in gene_sigs_list)
+# @param mRNA_expr_matrix A list of expression matrices
+# @param names_datasets The names of the different datasets contained in mRNA_expr_matrix
+# @param covariates A list containing a sub-list of 'annotations' and 'colors' which contains the annotation matrix for the given dataset and the associated colours with which to plot in the expression heatmap
+# @param out_dir A path to the directory where the resulting output files are written
+# @param file File representing the log file where errors can be written
+# @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+# @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
+# @keywords eval_struct_loc
 
 eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets,covariates, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # library(gplots)
@@ -21,7 +21,11 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     hmaps <- sapply(1:length(names_datasets),function(i) {
-      sig_scores <- (as.matrix(mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]))
+
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
+      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+
+      sig_scores <- (as.matrix(data.matrix[inter,]))
       #  print(sig_scores)
       tryCatch({
         if (length(covariates[[names_datasets[i]]]) ==0){
@@ -91,7 +95,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     })
     for ( i in 1:length(names_datasets)){
       all_hmaps <- hmaps[[1]]
-      
+
       if (length(hmaps) > 1){
         tmp <- lapply(hmaps[2:length(hmaps)],function(x) all_hmaps <<- ComplexHeatmap::add_heatmap(all_hmaps,x))
       }
@@ -142,12 +146,14 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     sig_ind <- ceiling(i/length(names_datasets))
     gene_sig <- gene_sigs_list[[names_sigs[sig_ind]]]
 
-    sig_scores <- as.matrix(mRNA_expr_matrix[[names_datasets[dataset_ind]]][gene_sig,])
+    data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]]
+    inter = intersect(gene_sig[,1], row.names(data.matrix))
+    sig_scores <- as.matrix(data.matrix[inter,])
     sig_scores[!is.finite(sig_scores)] <- NA
 
     #need to standardize here the matrix
-    for (j in 1:length(gene_sig)){
-      sig_scores[gene_sig[j],] <- (as.numeric(sig_scores[gene_sig[j],]) - mean(as.numeric(sig_scores[gene_sig[j],]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene_sig[j],]),na.rm=T)
+    for (gene in inter){
+      sig_scores[gene,] <- (as.numeric(sig_scores[gene,]) - mean(as.numeric(sig_scores[gene,]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene,]),na.rm=T)
     }
 
 
@@ -207,11 +213,14 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
 
     gene_sig <- gene_sigs_list[[names_sigs[sig_ind]]]
 
-    sig_scores <- as.matrix(mRNA_expr_matrix[[names_datasets[dataset_ind]]][gene_sig,])
+    data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]]
+    inter = intersect(gene_sig[,1], row.names(data.matrix))
+
+    sig_scores <- as.matrix(data.matrix[inter,])
     sig_scores[!is.finite(sig_scores)] <- NA
     #standardise by z-transform
-    for (j in 1:length(gene_sig)){
-      sig_scores[gene_sig[j],] <- (as.numeric(sig_scores[gene_sig[j],]) - mean(as.numeric(sig_scores[gene_sig[j],]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene_sig[j],]),na.rm=T)
+    for (gene in gene_sig){
+      sig_scores[gene,] <- (as.numeric(sig_scores[gene,]) - mean(as.numeric(sig_scores[gene,]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene,]),na.rm=T)
     }
     x <- biclust::binarize(stats::na.omit(t(sig_scores)))#discretize(stats::na.omit(t(sig_scores)),nof=10,quant=F)
     if (dim(sig_scores)[2] > 40) {
