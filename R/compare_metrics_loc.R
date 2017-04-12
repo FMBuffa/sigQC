@@ -15,46 +15,61 @@
 
 compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
-  for(k in 1:length(names_sigs)){
-    gene_sig <- gene_sigs_list[[names_sigs[k]]]
-    hmaps <- list()
+ 
+  for(k in 1:length(names_sigs)){ 
+    #for each signature we will make a separate file comparing the datasets
+    gene_sig <- gene_sigs_list[[names_sigs[k]]] # load the gene signature
+    #set up canvas for plotting
     if (showResults){
       grDevices::dev.new()
     }else{
       grDevices::pdf(file.path(out_dir,paste0('sig_compare_metrics_',names_sigs[k],'.pdf')),width=3*length(names_datasets),height=10)
     }
 
+    #find the max number of characters in the title
+    max_title_length <- -999
+    for( i in 1:length(names_datasets)){
+      if(max_title_length < nchar(paste0(names_datasets[i],' ',names_sigs[k]))){
+        max_title_length <- nchar(paste0(names_datasets[i],' ',names_sigs[k]))
+      }
+    }
+    #set up the canvas
     graphics::par(mfcol = c(4,length(names_datasets)),mar=c(4,4,4,4))
+
     for ( i in 1:length(names_datasets)){
-      data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
-      data.matrix[!(is.finite(as.matrix(data.matrix)))] <- NA
-      inter = intersect(gene_sig[,1],rownames(data.matrix))
+      # now we can loop over the datasets for the plot and generate the metrics for every dataset with this signature
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the data
+      data.matrix[!(is.finite(as.matrix(data.matrix)))] <- NA #ensure that the data is not infintie
+      inter = intersect(gene_sig[,1],rownames(data.matrix)) #consider only the genes actually present in the data
 
-      med_scores <- apply(data.matrix[inter,],2,function(x){stats::median(stats::na.omit(x))})
-      mean_scores <- apply(data.matrix[inter,],2,function(x){mean(stats::na.omit(x))})
-      pca1_scores <- stats::prcomp(stats::na.omit(t(data.matrix[inter,])),retx=T)
-      props_of_variances <- pca1_scores$sdev^2/(sum(pca1_scores$sdev^2))
-      pca1_scores <- pca1_scores$x[,1]
+      med_scores <- apply(data.matrix[inter,],2,function(x){stats::median(stats::na.omit(x))}) #compute median
+      mean_scores <- apply(data.matrix[inter,],2,function(x){mean(stats::na.omit(x))}) #compute mean
+      pca1_scores <- stats::prcomp(stats::na.omit(t(data.matrix[inter,])),retx=T) #compute PCA1
+      props_of_variances <- pca1_scores$sdev^2/(sum(pca1_scores$sdev^2)) #for the scree plot
+      pca1_scores <- pca1_scores$x[,1] #takes the actual PCA1 scores
 
-      common_score_cols <- intersect(names(med_scores),intersect(names(mean_scores),names(pca1_scores)))
+      common_score_cols <- intersect(names(med_scores),intersect(names(mean_scores),names(pca1_scores))) #ensures we have the same samples for each plot
+      #the following is the colourmap for the 2D scatter
       jet.colors <- grDevices::colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+      #plotting commands for the 2D scatterplot for mean-median correlation as follows
       graphics::smoothScatter(med_scores[common_score_cols],mean_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='Median vs Mean')
-      graphics::points(med_scores[common_score_cols],mean_scores[common_score_cols],pch='.')
+      graphics::points(med_scores[common_score_cols],mean_scores[common_score_cols],pch='.') #draw the points on top of it
       graphics::par(new=T)#,srt=45)
-      graphics::plot(stats::density(med_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA,  col='red',main=NA)
+      graphics::plot(stats::density(med_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA,  col='red',main=NA,lwd=2) #draw the density plot behind it
       graphics::axis(side = 4)
-      graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
+      graphics::mtext(side = 4, line = 2, 'Density',cex=0.8) #labels for the axes
       graphics::mtext(side = 2, line = 2, 'Mean',cex=0.8)
       graphics::mtext(side = 1, line = 2, 'Median',cex=0.8)
-      graphics::mtext(side=3,line=2.5,paste0(names_datasets[i],' ',names_sigs[k]))
-
-      rho <- stats::cor(med_scores[common_score_cols],mean_scores[common_score_cols],method='spearman')
+      graphics::mtext(side=3,line=2.5,paste0(names_datasets[i],' ',names_sigs[k]),cex=min(1,3*10/max_title_length)) #title
+      rho <- stats::cor(med_scores[common_score_cols],mean_scores[common_score_cols],method='spearman') 
       rho_mean_med <- rho
       graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores[common_score_cols]))
+
+      #plotting for the mean-pca1
       graphics::smoothScatter(mean_scores[common_score_cols],pca1_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='Mean vs PCA1')
       graphics::points(mean_scores[common_score_cols],pca1_scores[common_score_cols],pch='.')
       graphics::par(new=T)
-      graphics::plot(stats::density(mean_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA)
+      graphics::plot(stats::density(mean_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA,lwd=2)
       graphics::axis(side = 4)
       graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
       rho <- stats::cor(mean_scores[common_score_cols],pca1_scores[common_score_cols],method='spearman')
@@ -63,10 +78,11 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       graphics::mtext(side = 2, line = 2, 'PCA1',cex=0.8)
       graphics::mtext(side = 1, line = 2, 'Mean',cex=0.8)
 
+      #plotting for the pca1-median
       graphics::smoothScatter(pca1_scores[common_score_cols],med_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='PCA1 vs Median')
       graphics::points(pca1_scores[common_score_cols],med_scores[common_score_cols],pch='.')
       graphics::par(new=T)
-      graphics::plot(stats::density(pca1_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA)
+      graphics::plot(stats::density(pca1_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA,lwd=2)
       graphics::axis(side = 4)
       graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
       rho <- stats::cor(pca1_scores[common_score_cols],med_scores[common_score_cols],method='spearman')
@@ -92,19 +108,22 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       # autocors_mat[3,2] <- rho_pca1_med
       # autocors_mat[3,3] <- 1
 
+      #stores values that will be used in the radarplot
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_med'] <- rho_mean_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_pca1_med'] <- rho_pca1_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_pca1'] <- rho_mean_pca1
 
+      #draws the scree plot
       bars_plot <- props_of_variances[1:min(10,length(props_of_variances))]
       graphics::barplot(bars_plot,main="PCA vs proportion\n of variance") #ylim= c(0,1),
       graphics::mtext(side = 1, line = 2, 'PCA',cex=0.8)
     }
+    #saves file
     if(showResults){
       grDevices::dev.copy(grDevices::pdf,file.path(out_dir,paste0('sig_compare_metrics_',names_sigs[k],'.pdf')),width=3*length(names_datasets),height=10)
     }
     grDevices::dev.off()
   }
-  cat('Metrics compared successfully.\n', file=file)
-  radar_plot_values
+  cat('Metrics compared successfully.\n', file=file) #output to log
+  radar_plot_values #returns the radarplot values
 }

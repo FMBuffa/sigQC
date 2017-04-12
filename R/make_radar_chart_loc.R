@@ -18,11 +18,12 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   for(k in 1:length(names_sigs)){
     t <- lapply(radar_plot_values[[names_sigs[k]]],function(x) radar_plot_mat <<- rbind(radar_plot_mat,x))
   }
-  radar_plot_mat <- rbind(rep(1,length(radar_plot_values[[1]][[1]])),rep(0,length(radar_plot_values[[1]][[1]])),radar_plot_mat)
-  radar_plot_mat <- abs(radar_plot_mat)
+  radar_plot_mat <- rbind(rep(1,length(radar_plot_values[[1]][[1]])),rep(0,length(radar_plot_values[[1]][[1]])),radar_plot_mat) #we must store the top 2 rows of the radar plot matrix as the max and min of each ray of the plot
+  radar_plot_mat <- abs(radar_plot_mat) #consider only absolute value of correlation coefficients
   legend_labels <- c() #set up the legend
   legend_cols <- c()
   legend_lty <- c()
+  #the following creates the legend
   for(k in 1:length(names_sigs) ){
     for(i in 1:length(names_datasets)){
       legend_labels <- c(legend_labels,paste0(names_datasets[i],' ',names_sigs[k]))
@@ -30,7 +31,8 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
       legend_lty <- c(legend_lty, k)
     }
   }
-  row.names(radar_plot_mat) <- c('max','min',legend_labels)
+  row.names(radar_plot_mat) <- c('max','min',legend_labels) 
+  #set up plotting area
   if (showResults){
     grDevices::dev.new()
   }else{
@@ -38,11 +40,13 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   }
   # compute the area ratios
   areas <- c()
+  #first we calculate the area of each dataset/gene signature drawn on the radar plot
   for (i in 3:dim(radar_plot_mat)[1]){
     areas<- c(areas,sum(sapply(1:length(radar_plot_mat[i,]),function(x) if(x < length(radar_plot_mat[i,])){radar_plot_mat[i,x] * radar_plot_mat[i,x+1]}else{radar_plot_mat[i,x]* radar_plot_mat[i,1]})))
   }
-  areas <- areas /dim(radar_plot_mat)[2]
-  #add in the area values to the legend labels
+  areas <- areas /dim(radar_plot_mat)[2] #then we consider the area ratio of this to the total area of the radar plot polygon
+
+  #next, add in the area ratio values to the legend labels
   count <-1
   legend_labels <-c()
   for(k in 1:length(names_sigs) ){
@@ -51,8 +55,8 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
       count <- count + 1
     }
   }
-  graphics::layout(rbind(1,2), heights=c(7,1))  # put legend on bottom 1/8th of the chart
-
+  # graphics::layout(rbind(1,2), heights=c(7,1))  # put legend on bottom 1/8th of the chart
+  #the following draws the radarplot
   fmsb::radarchart(as.data.frame(radar_plot_mat),
                    maxmin = T,axistype = 1,
                    cglcol = 'grey',axislabcol = 'black',
@@ -69,17 +73,30 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   legend_labels <- legend_labels[order(-areas)]
   legend_cols <- legend_cols[order(-areas)]
   legend_lty <- legend_lty[order(-areas)]
-  graphics::par(mar=c(0, 0, 0, 0))
+  # graphics::par(mar=c(0, 0, 0, 0))
 
-  graphics::plot.new()
+  # graphics::plot.new()
+  #then we output the legend
   graphics::par(xpd=TRUE)
 
-  graphics::legend('center', legend=legend_labels, seg.len=0.5, title="Datasets",lty=legend_lty,pch=1,
-                   bty="n" ,lwd=1, col=legend_cols,cex=0.6,horiz=T)
+  #find the max number of characters in the title for legend fontsize
+  max_title_length <- -999
+  for(k in 1:length(names_sigs)){
+    for( i in 1:length(names_datasets)){
+      if(max_title_length < nchar(paste0(names_datasets[i],' ',names_sigs[k]))){
+        max_title_length <- nchar(paste0(names_datasets[i],' ',names_sigs[k]))
+      }
+    }
+  }
+
+
+  graphics::legend(0.5,1.45, legend=legend_labels, seg.len=2, title="Datasets",lty=legend_lty,
+                   bty="n" ,lwd=1, col=legend_cols,cex=min(0.8,3*10/max_title_length))
+  #save the plot
   if(showResults){
     grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
   }
   grDevices::dev.off()
-  cat('Radar chart made successfully.\n', file=file)
+  cat('Radar chart made successfully.\n', file=file) #output to log
 
 }
