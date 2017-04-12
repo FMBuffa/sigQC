@@ -110,15 +110,15 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
       if (showResults){
         grDevices::dev.new()
       } else{
-        grDevices::pdf(file.path(out_dir, paste0('sig_eval_struct_clustering_',names_datasets[i],'_',names_sigs[k],'.pdf')),width=10,height=10)#paste0(out_dir,'/sig_autocor_hmps.pdf'))
+        grDevices::pdf(file.path(out_dir, paste0('sig_eval_struct_clustering_',names_datasets[i],'_',names_sigs[k],'.pdf')),width=5*(length(names_datasets)),height=10)#paste0(out_dir,'/sig_autocor_hmps.pdf'))
       }
-      ComplexHeatmap::draw(all_hmaps)
+      ComplexHeatmap::draw(all_hmaps,heatmap_legend_side = "left",annotation_legend_side = "left", main_heatmap = names_datasets[i])
 
       # print(str_to_eval)
       # eval(parse(text=str_to_eval))
       # ComplexHeatmap::draw(hmaps[[1]] + hmaps[[2]])
       if(showResults){
-        grDevices::dev.copy(grDevices::pdf,file.path(out_dir, paste0('sig_eval_struct_clustering_',names_datasets[i],'_',names_sigs[k],'.pdf')),width=10,height=10)#paste0(out_dir,'/sig_autocor_hmps.pdf'))
+        grDevices::dev.copy(grDevices::pdf,file.path(out_dir, paste0('sig_eval_struct_clustering_',names_datasets[i],'_',names_sigs[k],'.pdf')),width=5*(length(names_datasets)),height=10)#paste0(out_dir,'/sig_autocor_hmps.pdf'))
       }
       cat('Expression heatmaps saved successfully.\n', file=file)
       grDevices::dev.off()
@@ -193,7 +193,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
 
   draw.heatmaps(hmaps,names_datasets,names_sigs)
 
-  grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_eval_bivariate_clustering.pdf'),width=10,height=10)
+  grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_eval_bivariate_clustering.pdf'),width=4*(length(names_datasets)),height=4*(length(names_sigs)))
   cat('Bi-clustering completed successfully\n', file=file)
 
   grDevices::dev.off()
@@ -254,7 +254,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
 
   draw.heatmaps(hmaps,names_datasets,names_sigs)
 
-  grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_eval_bivariate_clustering_binarized_maps.pdf'),width=10,height=10)
+  grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_eval_bivariate_clustering_binarized_maps.pdf'),width=4*(length(names_datasets)),height=4*(length(names_sigs)))
   grDevices::dev.off()
   radar_plot_values
 }

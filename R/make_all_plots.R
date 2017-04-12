@@ -38,7 +38,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   }
   if(is.null(names_datasets)){
     if(is.null(names(mRNA_expr_matrix))){
-      stop("Neeed specify a list of names. Each value must match a
+      stop("Need to specify a list of names. Each value must match a
            name in the mRNA_expr_matrix list of expression matrices.")
     } else {
       names_datasets <- names(mRNA_expr_matrix)
@@ -46,7 +46,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   }
   if(is.null(names_sigs)){
     if(is.null(names(gene_sigs_list))){
-      stop("Neeed specify a list of names. Each value must match a
+      stop("Need to specify a list of names. Each value must match a
            name in the gene_sigs_list list of gene signatures.")
     } else {
       names_sigs <- names(gene_sigs_list)

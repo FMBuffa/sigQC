@@ -20,7 +20,7 @@ eval_stan_loc <- function(gene_sigs_list, names_sigs,mRNA_expr_matrix, names_dat
   if (showResults){
     grDevices::dev.new()
   }else{
-    grDevices::pdf(file.path(out_dir, 'sig_standardisation_comp.pdf'),width=10,height=10)
+    grDevices::pdf(file.path(out_dir, 'sig_standardisation_comp.pdf'),width=4*(length(names_datasets)),height=(4*length(names_sigs)))
   }
 
   graphics::par(mfrow=c(num_rows,num_cols),oma=c(2,2,2,2),mar=c(4,4,4,4))
@@ -60,7 +60,7 @@ eval_stan_loc <- function(gene_sigs_list, names_sigs,mRNA_expr_matrix, names_dat
   }
   cat('Standardisation compared successfully.\n', file=file)
   if(showResults){
-    grDevices::dev.copy(grDevices::pdf,file.path(out_dir, 'sig_standardisation_comp.pdf'),width=10,height=10)
+    grDevices::dev.copy(grDevices::pdf,file.path(out_dir, 'sig_standardisation_comp.pdf'),width=4*(length(names_datasets)),height=(4*length(names_sigs)))
   }
   grDevices::dev.off()
   radar_plot_values

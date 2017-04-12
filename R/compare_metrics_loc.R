@@ -21,7 +21,7 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
     if (showResults){
       grDevices::dev.new()
     }else{
-      grDevices::pdf(file.path(out_dir,paste0('sig_compare_metrics_',names_sigs[k],'.pdf')),width=10,height=10)
+      grDevices::pdf(file.path(out_dir,paste0('sig_compare_metrics_',names_sigs[k],'.pdf')),width=3*length(names_datasets),height=10)
     }
 
     graphics::par(mfcol = c(4,length(names_datasets)),mar=c(4,4,4,4))
@@ -101,7 +101,7 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       graphics::mtext(side = 1, line = 2, 'PCA',cex=0.8)
     }
     if(showResults){
-      grDevices::dev.copy(grDevices::pdf,file.path(out_dir,paste0('sig_compare_metrics_',names_sigs[k],'.pdf')),width=10,height=10)
+      grDevices::dev.copy(grDevices::pdf,file.path(out_dir,paste0('sig_compare_metrics_',names_sigs[k],'.pdf')),width=3*length(names_datasets),height=10)
     }
     grDevices::dev.off()
   }

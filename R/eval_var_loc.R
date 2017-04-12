@@ -22,7 +22,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   if (showResults){
     grDevices::dev.new()
   }else{
-    grDevices::pdf(file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10)
+    grDevices::pdf(file.path(out_dir,'sig_mean_vs_sd.pdf'),width=4*(length(names_datasets)),height=4*(length(names_sigs)))
   }
 
   gene_sig_mean_sd_table <- list()
@@ -40,7 +40,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['abs_skewness_ratio'] = abs(moments:: skewness(stats::na.omit(mean_genes[inter, 1])))/(abs(moments:: skewness(stats::na.omit(mean_genes))) +  abs(moments:: skewness(stats::na.omit(mean_genes[inter, 1]))))
 
       graphics::plot(mean_genes,sd_genes,pch=19,col='grey',
-                     main=paste0('Mean vs SD for all genes and signature genes\n',names_datasets[i], ' ',names_sigs[k]),
+                     main=paste0('Mean vs SD of expression\n',names_datasets[i], ' ',names_sigs[k]),
                      xlab='Mean',
                      ylab='Standard deviation')
 
@@ -77,7 +77,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   }
 
   if(showResults){
-    grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_mean_vs_sd.pdf'),width=10,height=10)
+    grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_mean_vs_sd.pdf'),width=4*(length(names_datasets)),height=4*(length(names_sigs)))
   }
   grDevices::dev.off()
   cat('Mean vs SD graphs created successfully.\n', file=file)

@@ -45,7 +45,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
                          na.color="grey",
                          labRow=rownames(autocors),
                          labCol=colnames(autocors),#gene_sig,
-                         main = paste0("\n\nAutocorrelation ", names_datasets[[dataset_ind]] ,' ',names_sigs[[sig_ind]]),
+                         main = paste0("\n\nAutocorrelation\n", names_datasets[[dataset_ind]] ,' ',names_sigs[[sig_ind]]),
                          dendrogram = "col",
                          symbreaks = T,
                          Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=0.5,cexCol=0.5,margins=c(4,4))
@@ -58,14 +58,14 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   })
   draw.heatmaps(hmaps,names_datasets,names_sigs)
   # if(showResults){
-  grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_hmps.pdf'),width=10,height=10)
+  grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_hmps.pdf'),width=4*(length(names_datasets)),height=4*(length(names_sigs)))#width=10,height=10)
   # }
   grDevices::dev.off()
 
   if (showResults){
     grDevices::dev.new()
   }else{
-    grDevices::pdf(file.path(out_dir,'sig_autocor_dens.pdf'),width=10,height=10)
+    grDevices::pdf(file.path(out_dir,'sig_autocor_dens.pdf'),width=5,height=5)
   }
 
   graphics::par(cex.main=0.8,cex.lab = 0.6,oma=c(2,2,2,2),mar=c(2,2,2,2),mfrow=c(1,1))
@@ -77,6 +77,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       inter <- intersect(gene_sig[,1], row.names(data.matrix))
       autocors <- stats::cor(stats::na.omit(t(data.matrix[inter,])),method='spearman')
       cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$y)
+
       if (max_dens  < cur_max){
         max_dens <- cur_max
       }
@@ -90,9 +91,9 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       inter <- intersect(gene_sig[,1], row.names(data.matrix))
       autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
       if ((i ==1) && (k==1)){
-        graphics::plot(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),col=i,main=NA,lwd=2,lty=k)
+        graphics::plot(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
       }else{
-        graphics::lines(stats::density(unlist(stats::na.omit(autocors))),col=i,main=NA,lwd=2,lty=k)
+        graphics::lines(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
       }
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(stats::na.omit(autocors))
 
@@ -117,9 +118,11 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   graphics::legend("topright",legend_names,col=legend_cols,lty=legend_lty,lwd=rep(2,times=(length(names_datasets) * length(names_sigs))))
 
   if(showResults){
-    grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_dens.pdf'),width=10,height=10)
+    grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_dens.pdf'),width=5,height=5)
   }
   grDevices::dev.off()
+  if (length(names_datasets) > 1){
+
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     if (showResults){
@@ -133,7 +136,6 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
 
     #now we take the median of the genes' autocorrelation for each gene in each dataset and then look at the rank product over the different cancer types
     #note that the rank product analysis is only done if there is more than one dataset (otherwise not done, and is doen separately for each gene signature)
-    if (length(names_datasets) > 1){
       overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig[,1])),ncol=length(names_datasets))
       row.names(overall_rank_mat) <- unique(gene_sig[,1])
       colnames(overall_rank_mat) <- names_datasets
@@ -148,28 +150,28 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       # require(RankProd)
       RP.out <-RankProd::RP(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),logged = F,gene.names=rownames(overall_rank_mat))
       RankProd::plotRP(RP.out ,cutoff=0.05)
-      ########################################
-      # CHECK THE CODE IN THIS PART
-      #
-      #
-      ########################################
-      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=F, gene.names=intersect(gene_sig,rownames(mRNA_expr_matrix[[names_datasets[i]]])))
-      # output the rank product table to the screen
-      print(table_rank_prod)
+     
+      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=F, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
       # output the rank product table to file
-      utils::write.table(table_rank_prod,file=file.path(out_dir, paste0('rank_product_tables_',names_sigs[k],'.txt')),quote=F,sep='\t')
-
+      if( (!is.null(table_rank_prod$Table1)) & (!is.null(table_rank_prod$Table2))){
+          dir.create(file.path(out_dir,'rank_prod'))
+          utils::write.csv(table_rank_prod$Table1,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table1_',names_sigs[k],'.txt')),quote=F,sep='\t')
+          utils::write.csv(table_rank_prod$Table2,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table2_',names_sigs[k],'.txt')),quote=F,sep='\t')
+      }
+      
       cat("Autocorrelation rank product successfully computed.\n", file=file)
 
-    }else{
-      cat("Rank product not computed as there is only one dataset.\n", file=file)
-
-    }
+    
     if(showResults){
       grDevices::dev.copy(grDevices::pdf,file.path(out_dir,paste0('sig_autocor_rankProd_',names_sigs[k],'.pdf')),width=10,height=10)
     }
     grDevices::dev.off()
   }
+  }else{
+      cat("Rank product not computed as there is only one dataset.\n", file=file)
+
+    }
+
   radar_plot_values
 
 }
