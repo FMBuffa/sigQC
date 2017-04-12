@@ -13,7 +13,7 @@ make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
 
 \item{mRNA_expr_matrix}{A list of expression matrices}
 
-\item{names_sigs}{The names of the gene signatures (one name per gene signature, in gene_sigs_list)}
+\item{names_sigs}{The names of the gene signatures (e.g. Hypoxia, Invasiveness), one name per each signature in gene_sigs_list.}
 
 \item{names_datasets}{The names of the different datasets contained in mRNA_expr_matrix}
 
@@ -26,6 +26,6 @@ make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
 \item{showResults}{Tells if open dialog boxes showing the computed results. Default is FALSE}
 }
 \description{
-Makes the plots in each of the subfunctions. This is the only function that should be called by the user.
+Makes all the plots for the quality control of the list(s) of genes.
 }
 \keyword{make_all_plots}
