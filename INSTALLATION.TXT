@@ -9,3 +9,24 @@ Type following commands in R:
 > install(DIR)
 
 Can skip the install.packages("devtools") if user has it already.
+
+
+There should be successful message if there isn't any error.
+
+================================================================================
+Installing sigQC
+"C:/PROGRA~1/R/R-33~1.1/bin/x64/R" --no-site-file --no-environ --no-save  \
+  --no-restore --quiet CMD INSTALL "C:/Users/cweichen/Desktop/sigQC-master"  \
+  --library="C:/Users/cweichen/Documents/R/win-library/3.3" --install-tests 
+
+* installing *source* package 'sigQC' ...
+** R
+** preparing package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded
+*** arch - i386
+*** arch - x64
+* DONE (sigQC)
+================================================================================
