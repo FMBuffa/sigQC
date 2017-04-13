@@ -16,8 +16,8 @@ There should be successful message if there isn't any error.
 ================================================================================
 Installing sigQC
 "C:/PROGRA~1/R/R-33~1.1/bin/x64/R" --no-site-file --no-environ --no-save  \
-  --no-restore --quiet CMD INSTALL "C:/Users/cweichen/Desktop/sigQC-master"  \
-  --library="C:/Users/cweichen/Documents/R/win-library/3.3" --install-tests 
+  --no-restore --quiet CMD INSTALL "C:/Users/Desktop/sigQC-master"  \
+  --library="C:/Users/Documents/R/win-library/3.3" --install-tests 
 
 * installing *source* package 'sigQC' ...
 ** R
