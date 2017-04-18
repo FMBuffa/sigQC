@@ -147,5 +147,24 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
   #write to log file
   cat('Expression and density graphs created successfully.\n', file=file)
 
+  #here we calculate the outputs again just to put in text files
+  dir.create(file.path(out_dir,'expression_tables'))
+
+  for (k in 1:length(names_sigs)){
+    gene_sig <- gene_sigs_list[[names_sigs[k]]] #load signature
+    for (i in 1:length(names_datasets)){
+      #calculate the porportion of nonzero expression data in the matrix
+      # genes_expr <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load dataset
+      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only look at genes that are in the dataset
+      genes_expr <- data.matrix[inter,] 
+      gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2])) #take proportion of expression
+      gene_expr_vals_na <- (rowSums(is.na(genes_expr)) / dim(genes_expr)[2]) #count the proportion of NA values
+      output_table <- cbind(gene_expr_vals,gene_expr_vals_na)
+      colnames(output_table) <- c('Proportion above threshold','NA proportion')
+      utils::write.table(output_table,file=file.path(out_dir,'expression_tables', paste0('expression_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
+    }
+  }
+
   radar_plot_values #return the values we will use in the radarplot
 }

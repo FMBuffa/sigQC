@@ -49,6 +49,14 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes inside the dataset
     autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate the autocorrelations
 
+    #let's output this to a file---
+    dir.create(file.path(out_dir,'autocorrelation_matrices'))
+    utils::write.table(autocors,file=file.path(out_dir,'autocorrelation_matrices', paste0('autocorrelation_matrix_',names_sigs[sig_ind],'_',names_datasets[dataset_ind],'.txt')),quote=F,sep='\t')
+
+
+    #-----
+
+
     #the following draws the heatmaps for the autocorrelation
     tryCatch({
       gplots::heatmap.2( stats::na.omit(autocors),

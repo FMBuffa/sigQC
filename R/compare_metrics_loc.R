@@ -15,7 +15,7 @@
 
 compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
- 
+  dir.create(file.path(out_dir,'metrics_tables'))
   for(k in 1:length(names_sigs)){ 
     #for each signature we will make a separate file comparing the datasets
     gene_sig <- gene_sigs_list[[names_sigs[k]]] # load the gene signature
@@ -107,6 +107,12 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       # autocors_mat[3,1] <- rho_mean_pca1
       # autocors_mat[3,2] <- rho_pca1_med
       # autocors_mat[3,3] <- 1
+
+      #here we output the table of mean, median and pca1 scores for each sample to a table
+      output_mat <- cbind(mean_scores[common_score_cols],cbind(med_scores[common_score_cols],cbind(pca1_scores[common_score_cols])))
+      colnames(output_mat) <- c('Mean Scores','Median Scores','PCA1 Scores')
+
+      utils::write.table(output_mat,file=file.path(out_dir,'metrics_tables', paste0('metrics_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
 
       #stores values that will be used in the radarplot
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_med'] <- rho_mean_med

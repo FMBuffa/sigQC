@@ -97,6 +97,12 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
     grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
   }
   grDevices::dev.off()
+
+  #output the radarchart table to file
+  dir.create(file.path(out_dir,'radarchart_table'))
+
+  utils::write.table(radar_plot_mat[3:(dim(radar_plot_mat)[1]),],file=file.path(out_dir,'radarchart_table', paste0('radarchart_table','.txt')),quote=F,sep='\t')
+
   cat('Radar chart made successfully.\n', file=file) #output to log
 
 }

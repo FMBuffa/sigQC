@@ -40,7 +40,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the gene signature
     for (i in 1:length(names_datasets)){
-      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset 
       inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider genes only present in the dataset
 
       sd_genes <- as.matrix(apply(data.matrix,1,function(x){stats::sd(as.numeric(x),na.rm=T) })) #compute the standard deviation of the genes
@@ -84,7 +84,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
       # graphics::mtext(side = 4, line = 0.8, at= quants_sd[3], '50%',cex=0.4)
       # graphics::mtext(side = 4, line = 0.4, at=quants_sd[4], '75%',cex=0.4)
       # graphics::mtext(side = 4, line = 0, at = quants_sd[5], '90%',cex=0.4)
-      graphics::legend('topright',legend=c('10%, 90%','25%, 75%','50%'),col=c('cadetblue1','dodgerblue1','darkblue'),lty=5,bty='n',cex=0.5) #create legend for the quantile lines
+      legend('topright',legend=c('10%, 90%','25%, 75%','50%'),col=c('cadetblue1','dodgerblue1','darkblue'),lty=5,bty='n',cex=0.5) #create legend for the quantile lines
       gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]] <- cbind(mean_genes[inter, 1],sd_genes[inter, 1]) #store values for the gene signature table
       colnames(gene_sig_mean_sd_table[[names_sigs[k]]][[names_datasets[i]]]) <- c("Mean","SD")
     }
