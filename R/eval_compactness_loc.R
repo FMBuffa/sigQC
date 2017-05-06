@@ -84,16 +84,48 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   # }
   grDevices::dev.off()
 
+#because we want the legend outside the plot, first we calculate the width of the legend to get the right sized canvas
+  #code from stackoverflow. 
+  grDevices::dev.off() # to reset the graphics pars to defaults
+  graphics::par(mar=c(0,0,0,0))#c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
+  graphics::plot.new()
+
+  legend_names <- c()
+  legend_cols <- c()
+  legend_lty <- c()
+  for(k in 1:length(names_sigs)){
+    for (i in 1:length(names_datasets) ){
+      legend_names <- c(legend_names,paste0(names_datasets[i],' ',names_sigs[k]))
+      legend_cols <- c(legend_cols,i)
+      legend_lty <- c(legend_lty,k)
+    }
+  }
+
+  l <-  graphics::legend(0.05, 0,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(2,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)), plot=FALSE)
+  # calculate right margin width in ndc
+  w <- graphics::grconvertX(l$rect$w, to='ndc') - graphics::grconvertX(0, to='ndc')
+  #grDevices::dev.off() # to reset the graphics pars to defaults
+
+#  par()
+
+ #sets up the graphical parameters
+
   #sets up a new graphics object
   if (showResults){
     grDevices::dev.new()
   }else{
     grDevices::pdf(file.path(out_dir,'sig_autocor_dens.pdf'),width=5,height=5)
   }
-  #sets up the graphical parameters
-  graphics::par(cex.main=0.8,cex.lab = 0.6,oma=c(2,2,2,2),mar=c(2,2,2,2),mfrow=c(1,1))
+   
+
+  graphics::par(cex.main=0.8,cex.lab = 0.6,omd=c(0, 1-w, 0, 1 ),mar=c(3,3,4,1),mfrow=c(1,1))
+
+
+
+
   #the following is to set up the right y limit on the autocorrelation density plot (first we need to know the maximum of the density plots)
   max_dens <- -9999
+  max_x_coord <- -9999 #for legnd plotting
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
     for (i in 1:length(names_datasets) ){
@@ -101,14 +133,18 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       inter <- intersect(gene_sig[,1], row.names(data.matrix))
       autocors <- stats::cor(stats::na.omit(t(data.matrix[inter,])),method='spearman')
       cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$y)
-
       if (max_dens  < cur_max){
         max_dens <- cur_max
       }
+      cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$x)
+      if (max_x_coord  < cur_max){
+        max_x_coord <- cur_max
+      }
     }
   }
-
   #the following actually draws the density plots for each signature and dataset
+  
+
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
     for (i in 1:length(names_datasets) ){
@@ -127,20 +163,11 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   # draw the labels for the plot
   graphics::mtext(side = 2, line = 2, 'Density',cex=0.8)
   graphics::mtext(side = 1, line = 2, 'Rho',cex=0.8)
-  graphics::mtext(side=3,line=2,'Autocorrelation Density')
+  graphics::mtext(side = 3, line = 2,'Autocorrelation Density')
   # makes the legend for the plot (sets parameters)
-  op <- graphics::par(cex=0.6)
-  legend_names <- c()
-  legend_cols <- c()
-  legend_lty <- c()
-  for(k in 1:length(names_sigs)){
-    for (i in 1:length(names_datasets) ){
-      legend_names <- c(legend_names,paste0(names_datasets[i],' ',names_sigs[k]))
-      legend_cols <- c(legend_cols,i)
-      legend_lty <- c(legend_lty,k)
-    }
-  }
-  graphics::legend("topright",legend_names,col=legend_cols,lty=legend_lty,lwd=rep(2,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)))
+  op <- graphics::par(cex=0.6)#,xpd=T)
+  
+  graphics::legend(graphics::par('usr')[2]+0.05, graphics::par('usr')[4],xpd=NA,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(2,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)))
   #saves the plot to file
   if(showResults){
     grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_dens.pdf'),width=5,height=5)
