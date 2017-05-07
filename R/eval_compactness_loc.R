@@ -70,7 +70,8 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
                          main = paste0("\n\nAutocorrelation\n", names_datasets[[dataset_ind]] ,' ',names_sigs[[sig_ind]]),
                          dendrogram = "col",
                          symbreaks = T,
-                         Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=min(0.5,(4*4/length(rownames(autocors)))),cexCol=min(0.5,(4*4/length(rownames(autocors)))),margins=c(4,4))
+                         Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),cexCol=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),margins=c(4,4))
+    
     },
     error=function(err){
       cat(paste0("There was an error, likely due to NA values in data, for dataset: ",names_datasets[dataset_ind]," ", names_sigs[sig_ind]," ", err,'\n'), file=file)
