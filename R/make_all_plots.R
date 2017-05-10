@@ -25,7 +25,9 @@
 #' gene_sig = c('1', '4', '5')#gene ids
 #' gene_sigs_list[[signature]] = as.matrix(gene_sig)
 #' names_sigs = c(signature)
-#' make_all_plots(names_datasets = names, names_sigs = names_sigs, gene_sigs_list = gene_sigs_list, mRNA_expr_matrix = mRNA_expr_matrix, out_dir = outputdir.path)
+#' out_dir = file.path('~', "sigQC_Test")
+#' dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+#' make_all_plots(names_datasets = names, names_sigs = names_sigs, gene_sigs_list = gene_sigs_list, mRNA_expr_matrix = mRNA_expr_matrix, out_dir = out_dir)
 
 
 
@@ -33,7 +35,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   ###########Check the input
  radar_plot_values <- list();
   #check that there is a list of gene signatures
-  if(missing(gene_sigs_list)){ 
+  if(missing(gene_sigs_list)){
     stop("Need to specify a list of gene signatures. The IDs must match those in the expression matrices.")
   }
   #check that there is a/are dataset(s)
@@ -64,13 +66,13 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   for(i in 1:length(names_sigs)){
     radar_plot_values[[names_sigs[i]]] <- list();
    }
-   #check that the legnths of the names are all equal 
+   #check that the legnths of the names are all equal
   if ((length(names_datasets)== length(mRNA_expr_matrix)) && (length(names_sigs)==length(gene_sigs_list))){
     ###########Check if the needed package exists otherwise install it
     dir.create(out_dir)
    # utils::write.table('',file=file.path(out_dir, "log.log"))
     #LOG file path
-    logfile.path = file.path(out_dir, "log.log") 
+    logfile.path = file.path(out_dir, "log.log")
     #Log conn
     log.con = file(logfile.path, open = "a") #open the logfile
     #run each of the sub functions
