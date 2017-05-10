@@ -236,7 +236,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     sig_scores <- as.matrix(data.matrix[inter,])
     sig_scores[!is.finite(sig_scores)] <- NA #make sure the data is finite
     #standardise by z-transform
-    for (gene in gene_sig){
+    for (gene in inter){
       sig_scores[gene,] <- (as.numeric(sig_scores[gene,]) - mean(as.numeric(sig_scores[gene,]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene,]),na.rm=T)
     }
     #binarize the matrix
