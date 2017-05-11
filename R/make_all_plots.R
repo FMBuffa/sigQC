@@ -32,8 +32,13 @@
 
 
 make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,names_datasets=NULL , covariates=NULL, thresholds=NULL, out_dir = '~', showResults = FALSE){
-####print version number
-print("-----sigQC Version 1.00-----")
+
+  #### print version number
+  #### encoding scheme: major.minor
+  #### major for large change
+  #### minor for small change, whose results are expected to be similar as previous version. (two digits)
+  print("-----sigQC Version 1.00-----")
+  
   ###########Check the input
  radar_plot_values <- list();
   #check that there is a list of gene signatures
