@@ -37,7 +37,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.00-----")
+  print("-----sigQC Version 1.01-----")
   
   ###########Check the input
  radar_plot_values <- list();

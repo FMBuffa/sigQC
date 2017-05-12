@@ -52,6 +52,7 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       inter <- intersect(gene_sig[,1], row.names(data.matrix))
       genes_expr <- data.matrix[inter,] #subset to only the genes present in the data
       gene_expr_vals <- (rowSums(is.na(genes_expr)) / dim(genes_expr)[2]) #count the proportion of NA values
+      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
       gene_expr_vals <- -sort(-gene_expr_vals)
       #make the barplot; if all are zero, we manually set the limits for the barplot
       if(max(gene_expr_vals)==0){
@@ -103,6 +104,7 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only consider the genes in the dataset
       genes_expr <- data.matrix[inter,] #subset the matrix to just the gene signature
       gene_expr_vals <- 1 - ((rowSums(genes_expr < thresholds[i])) / (dim(genes_expr)[2])) #figure out what proportion of samples express gene above threshold
+      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 
       gene_expr_vals <- sort(gene_expr_vals) 
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['med_prop_above_med'] <- stats::median(gene_expr_vals) #store median value for final radar plot
       #create bar graph
@@ -135,6 +137,7 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only look at genes that are in the dataset
       genes_expr <- data.matrix[inter,] 
       gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2])) #take proportion of expression
+      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 
       #make the density plot
       graphics::plot(stats::density(stats::na.omit(gene_expr_vals),adjust=0.25),main=paste0("Signature gene expression\n",names_datasets[i], ' ',names_sigs[k]),ylab="Density",cex.main=min(1,3.5*10/max_line_length))
     }
@@ -159,7 +162,11 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only look at genes that are in the dataset
       genes_expr <- data.matrix[inter,] 
       gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2])) #take proportion of expression
+      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 #add back in the genes that were never present anyways
+
       gene_expr_vals_na <- (rowSums(is.na(genes_expr)) / dim(genes_expr)[2]) #count the proportion of NA values
+      gene_expr_vals_na[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
+
       output_table <- cbind(gene_expr_vals,gene_expr_vals_na)
       colnames(output_table) <- c('Proportion above threshold','NA proportion')
       utils::write.table(output_table,file=file.path(out_dir,'expression_tables', paste0('expression_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
