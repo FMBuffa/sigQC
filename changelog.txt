@@ -1,1 +1,2 @@
+12/05/2017/Version 1.01: Small bug fix re: calculating proportion of expressed/NA genes, accounting for genes not present as rownnames in the dataset.
 11/05/2017/Version 1.00: Base version.
