@@ -124,7 +124,7 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_top_25_percent'] <- prop_top_25_percent
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_top_50_percent'] <- prop_top_50_percent
 
-      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['coeff_of_var_ratio'] <- stats::median(stats::na.omit(coeff_of_var_gene_sig))/(stats::median(stats::na.omit(coeff_of_var)) + stats::median(stats::na.omit(coeff_of_var_gene_sig))) #the fractional ratio of the coefficient of variation for the final plot
+      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['coeff_of_var_ratio'] <- abs((abs(stats::median(stats::na.omit(coeff_of_var_gene_sig))))/((abs(stats::median(stats::na.omit(coeff_of_var)))) + abs((stats::median(stats::na.omit(coeff_of_var_gene_sig)))))) #the fractional ratio of the coefficient of variation for the final plot
 
       # boxplot(stats::na.omit(coeff_of_var),stats::na.omit(coeff_of_var_gene_sig),#log="y",
       # names=c('All Genes','Gene Signature'),
