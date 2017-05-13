@@ -1,2 +1,3 @@
+13/05/2017/Version 1.02: Small bug fix re: Coefficient of variance ratio in radar plot; added absolute values to maintain range in [0,1].
 12/05/2017/Version 1.01: Small bug fix re: calculating proportion of expressed/NA genes, accounting for genes not present as rownnames in the dataset.
 11/05/2017/Version 1.00: Base version.
