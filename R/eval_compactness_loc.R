@@ -48,7 +48,10 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]] #load the data
     inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes inside the dataset
     autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate the autocorrelations
-
+    # print(paste0('gene_sig ',gene_sig))
+    # print(paste0("intersection",inter))
+    # print(cor(t(data.matrix[inter,]),method='spearman'))
+    # print(autocors)
     #let's output this to a file---
     dir.create(file.path(out_dir,'autocorrelation_matrices'))
     utils::write.table(autocors,file=file.path(out_dir,'autocorrelation_matrices', paste0('autocorrelation_matrix_',names_sigs[sig_ind],'_',names_datasets[dataset_ind],'.txt')),quote=F,sep='\t')
@@ -74,7 +77,10 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     
     },
     error=function(err){
-      cat(paste0("There was an error, likely due to NA values in data, for dataset: ",names_datasets[dataset_ind]," ", names_sigs[sig_ind]," ", err,'\n'), file=file)
+      graphics::plot.new()
+      graphics::title(paste0('\n\nToo many NA values in \n',names_datasets[dataset_ind],' ',names_sigs[sig_ind]))#cex=min(1,4*10/max_title_length))
+      cat(paste0("There was an error,  ",names_datasets[dataset_ind]," ", names_sigs[sig_ind]," ", err,'\n'), file=file)
+
     })
     grab_grob() #grabs the image from the screen to put on a pdf
   })
@@ -102,7 +108,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     }
   }
 
-  l <-  graphics::legend(0.05, 0,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(2,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)), plot=FALSE)
+  l <-  graphics::legend(0.05, 0,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(1,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)), plot=FALSE)
   # calculate right margin width in ndc
   w <- graphics::grconvertX(l$rect$w, to='ndc') - graphics::grconvertX(0, to='ndc')
   #grDevices::dev.off() # to reset the graphics pars to defaults
@@ -132,33 +138,44 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     for (i in 1:length(names_datasets) ){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
       inter <- intersect(gene_sig[,1], row.names(data.matrix))
-      autocors <- stats::cor(stats::na.omit(t(data.matrix[inter,])),method='spearman')
-      cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$y)
-      if (max_dens  < cur_max){
-        max_dens <- cur_max
-      }
-      cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$x)
-      if (max_x_coord  < cur_max){
-        max_x_coord <- cur_max
+      autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') 
+      # print(paste0("autocor dim", dim(autocors)))
+      # print(autocors)
+      if(dim(autocors)[1] > 1){
+        cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$y)
+        if (max_dens  < cur_max){
+          max_dens <- cur_max
+        }
+        cur_max <- max(stats::density(unlist(stats::na.omit(autocors)))$x)
+        if (max_x_coord  < cur_max){
+          max_x_coord <- cur_max
+        }
       }
     }
   }
   #the following actually draws the density plots for each signature and dataset
   
-
+  plots_count <- 0
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
     for (i in 1:length(names_datasets) ){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the datasets
       inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes in the dataset
-      autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate autocorrelaiton
+      autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate autocorrelation
       #make the plots
-      if ((i ==1) && (k==1)){
-        graphics::plot(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
+      if(dim(autocors)[1] > 1){
+
+        if (plots_count==0){#(i ==1) && (k==1)){
+          graphics::plot(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
+          plots_count <- 1
+        }else{
+          graphics::lines(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
+        }
+        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
       }else{
-        graphics::lines(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
+        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- 0#stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
+
       }
-      radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
     }
   }
   # draw the labels for the plot
@@ -168,7 +185,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   # makes the legend for the plot (sets parameters)
   op <- graphics::par(cex=0.6)#,xpd=T)
   
-  graphics::legend(graphics::par('usr')[2]+0.05, graphics::par('usr')[4],xpd=NA,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(2,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)))
+  graphics::legend(graphics::par('usr')[2]+0.05, graphics::par('usr')[4],xpd=NA,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(1,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)))
   #saves the plot to file
   if(showResults){
     grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_autocor_dens.pdf'),width=5,height=5)

@@ -44,53 +44,91 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
 
       med_scores <- apply(data.matrix[inter,],2,function(x){stats::median(stats::na.omit(x))}) #compute median
       mean_scores <- apply(data.matrix[inter,],2,function(x){mean(stats::na.omit(x))}) #compute mean
-      pca1_scores <- stats::prcomp(stats::na.omit(t(data.matrix[inter,])),retx=T) #compute PCA1
-      props_of_variances <- pca1_scores$sdev^2/(sum(pca1_scores$sdev^2)) #for the scree plot
-      pca1_scores <- pca1_scores$x[,1] #takes the actual PCA1 scores
+      
+      pca1_scores <- NULL
 
-      common_score_cols <- intersect(names(med_scores),intersect(names(mean_scores),names(pca1_scores))) #ensures we have the same samples for each plot
-      #the following is the colourmap for the 2D scatter
-      jet.colors <- grDevices::colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
-      #plotting commands for the 2D scatterplot for mean-median correlation as follows
-      graphics::smoothScatter(med_scores[common_score_cols],mean_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='Median vs Mean')
-      graphics::points(med_scores[common_score_cols],mean_scores[common_score_cols],pch='.') #draw the points on top of it
-      graphics::par(new=T)#,srt=45)
-      graphics::plot(stats::density(med_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA,  col='red',main=NA,lwd=2) #draw the density plot behind it
-      graphics::axis(side = 4)
-      graphics::mtext(side = 4, line = 2, 'Density',cex=0.8) #labels for the axes
-      graphics::mtext(side = 2, line = 2, 'Mean',cex=0.8)
-      graphics::mtext(side = 1, line = 2, 'Median',cex=0.8)
-      graphics::mtext(side=3,line=2.5,paste0(names_datasets[i],' ',names_sigs[k]),cex=min(1,3*10/max_title_length)) #title
-      rho <- stats::cor(med_scores[common_score_cols],mean_scores[common_score_cols],method='spearman') 
-      rho_mean_med <- rho
-      graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores[common_score_cols]))
+      tryCatch({
+        pca1_scores <- stats::prcomp(stats::na.omit(t(data.matrix[inter,])),retx=T) #compute PCA1
+        
+        },error=function(e){
+          pca1_scores <<- NULL
+          cat(paste0("There was an error:  ",names_datasets[i]," ", names_sigs[k]," ", e,'\n'), file=file)
 
-      #plotting for the mean-pca1
-      graphics::smoothScatter(mean_scores[common_score_cols],pca1_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='Mean vs PCA1')
-      graphics::points(mean_scores[common_score_cols],pca1_scores[common_score_cols],pch='.')
-      graphics::par(new=T)
-      graphics::plot(stats::density(mean_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA,lwd=2)
-      graphics::axis(side = 4)
-      graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
-      rho <- stats::cor(mean_scores[common_score_cols],pca1_scores[common_score_cols],method='spearman')
-      rho_mean_pca1 <- rho
-      graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(mean_scores[common_score_cols]))
-      graphics::mtext(side = 2, line = 2, 'PCA1',cex=0.8)
-      graphics::mtext(side = 1, line = 2, 'Mean',cex=0.8)
+     #     print(paste0("error: ", e))
+      })
 
-      #plotting for the pca1-median
-      graphics::smoothScatter(pca1_scores[common_score_cols],med_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='PCA1 vs Median')
-      graphics::points(pca1_scores[common_score_cols],med_scores[common_score_cols],pch='.')
-      graphics::par(new=T)
-      graphics::plot(stats::density(pca1_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA,lwd=2)
-      graphics::axis(side = 4)
-      graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
-      rho <- stats::cor(pca1_scores[common_score_cols],med_scores[common_score_cols],method='spearman')
-      rho_pca1_med <- rho
-      graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(pca1_scores[common_score_cols]))
-      graphics::mtext(side = 2, line = 2, 'Median',cex=0.8)
-      graphics::mtext(side = 1, line = 2, 'PCA1',cex=0.8)
 
+      # print(paste0("test ",pca1_scores ))
+      if(length(pca1_scores) > 1){#!is.null(pca1_scores)){
+        props_of_variances <- pca1_scores$sdev^2/(sum(pca1_scores$sdev^2)) #for the scree plot
+        pca1_scores <- pca1_scores$x[,1] #takes the actual PCA1 scores
+        common_score_cols <- intersect(names(med_scores),intersect(names(mean_scores),names(pca1_scores))) #ensures we have the same samples for each plot
+      }else{
+        common_score_cols <- intersect(names(med_scores),names(mean_scores))
+      }
+
+      if(length(common_score_cols) > 1){
+        #the following is the colourmap for the 2D scatter
+        jet.colors <- grDevices::colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+        #plotting commands for the 2D scatterplot for mean-median correlation as follows
+        graphics::smoothScatter(med_scores[common_score_cols],mean_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='Median vs Mean')
+        graphics::points(med_scores[common_score_cols],mean_scores[common_score_cols],pch='.') #draw the points on top of it
+        graphics::par(new=T)#,srt=45)
+        graphics::plot(stats::density(med_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA,  col='red',main=NA,lwd=2) #draw the density plot behind it
+        graphics::axis(side = 4)
+        graphics::mtext(side = 4, line = 2, 'Density',cex=0.8) #labels for the axes
+        graphics::mtext(side = 2, line = 2, 'Mean',cex=0.8)
+        graphics::mtext(side = 1, line = 2, 'Median',cex=0.8)
+        graphics::mtext(side=3,line=2.5,paste0(names_datasets[i],' ',names_sigs[k]),cex=min(1,3*10/max_title_length)) #title
+        rho <- stats::cor(med_scores[common_score_cols],mean_scores[common_score_cols],method='spearman') 
+        rho_mean_med <- rho
+        graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores[common_score_cols]))
+      }else{
+        graphics::plot.new()
+        graphics::mtext(side=3,line=2.5,paste0(names_datasets[i],' ',names_sigs[k]),cex=min(1,3*10/max_title_length)) #title
+
+        graphics::title(paste0('\n\nToo many NA values for Mean/Median in \n',names_datasets[i],' ',names_sigs[k]))#cex=min(1,4*10/max_title_length))
+        rho_mean_med <- 0
+      }
+      if (length(pca1_scores) > 1){#(!is.null(pca1_scores)){
+        #plotting for the mean-pca1
+        graphics::smoothScatter(mean_scores[common_score_cols],pca1_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='Mean vs PCA1')
+        graphics::points(mean_scores[common_score_cols],pca1_scores[common_score_cols],pch='.')
+        graphics::par(new=T)
+        graphics::plot(stats::density(mean_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA,lwd=2)
+        graphics::axis(side = 4)
+        graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
+        rho <- stats::cor(mean_scores[common_score_cols],pca1_scores[common_score_cols],method='spearman')
+        rho_mean_pca1 <- rho
+        graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(mean_scores[common_score_cols]))
+        graphics::mtext(side = 2, line = 2, 'PCA1',cex=0.8)
+        graphics::mtext(side = 1, line = 2, 'Mean',cex=0.8)
+
+        #plotting for the pca1-median
+        graphics::smoothScatter(pca1_scores[common_score_cols],med_scores[common_score_cols],colramp = jet.colors,xlab=NA,ylab=NA,main='PCA1 vs Median')
+        graphics::points(pca1_scores[common_score_cols],med_scores[common_score_cols],pch='.')
+        graphics::par(new=T)
+        graphics::plot(stats::density(pca1_scores[common_score_cols]), axes=F, xlab=NA, ylab=NA, col='red',main=NA,lwd=2)
+        graphics::axis(side = 4)
+        graphics::mtext(side = 4, line = 2, 'Density',cex=0.8)
+        rho <- stats::cor(pca1_scores[common_score_cols],med_scores[common_score_cols],method='spearman')
+        rho_pca1_med <- rho
+        graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(pca1_scores[common_score_cols]))
+        graphics::mtext(side = 2, line = 2, 'Median',cex=0.8)
+        graphics::mtext(side = 1, line = 2, 'PCA1',cex=0.8)
+      }else{
+
+#        graphics::par(new=T)
+        graphics::plot.new()
+        graphics::title(paste0('\n\nToo many NA values for PCA1/Mean in \n',names_datasets[i],' ',names_sigs[k]))#cex=min(1,4*10/max_title_length))
+        rho_mean_pca1 <- 0
+
+ #       graphics::par(new=T)
+        graphics::plot.new()
+        graphics::title(paste0('\n\nToo many NA values for Median/PCA1 in \n',names_datasets[i],' ',names_sigs[k]))#cex=min(1,4*10/max_title_length))
+        rho_pca1_med <- 0
+
+      }
       #here we put the cor plot of the mean median and pca1 (if we wanted an autocorrelation heatmap of these metrics)
 
       # autocors_mat <- matrix(0,nrow=3,ncol=3)
@@ -109,8 +147,14 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       # autocors_mat[3,3] <- 1
 
       #here we output the table of mean, median and pca1 scores for each sample to a table
-      output_mat <- cbind(mean_scores[common_score_cols],cbind(med_scores[common_score_cols],cbind(pca1_scores[common_score_cols])))
-      colnames(output_mat) <- c('Mean Scores','Median Scores','PCA1 Scores')
+      if(length(pca1_scores) > 1){#(!is.null(pca1_scores)){
+        output_mat <- cbind(mean_scores[common_score_cols],cbind(med_scores[common_score_cols],pca1_scores[common_score_cols]))
+        colnames(output_mat) <- c('Mean Scores','Median Scores','PCA1 Scores')
+      }else{
+        output_mat <- cbind(mean_scores[common_score_cols],med_scores[common_score_cols])
+        colnames(output_mat) <- c('Mean Scores','Median Scores')
+
+      }
 
       utils::write.table(output_mat,file=file.path(out_dir,'metrics_tables', paste0('metrics_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
 
@@ -118,11 +162,17 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_med'] <- rho_mean_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_pca1_med'] <- rho_pca1_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_pca1'] <- rho_mean_pca1
-
-      #draws the scree plot
-      bars_plot <- props_of_variances[1:min(10,length(props_of_variances))]
-      graphics::barplot(bars_plot,main="PCA vs proportion\n of variance") #ylim= c(0,1),
-      graphics::mtext(side = 1, line = 2, 'PCA',cex=0.8)
+      
+      if(length(pca1_scores) > 1){#(!is.null(pca1_scores)){
+        #draws the scree plot
+        bars_plot <- props_of_variances[1:min(10,length(props_of_variances))]
+        graphics::barplot(bars_plot,main="PCA vs proportion\n of variance") #ylim= c(0,1),
+        graphics::mtext(side = 1, line = 2, 'PCA',cex=0.8)
+      }else{
+       # graphics::par(new=T)
+        graphics::plot.new()
+        graphics::title(paste0('\n\nToo many NA values for PCA1 in \n',names_datasets[i],' ',names_sigs[k]))#cex=min(1,4*10/max_title_length))
+      }
     }
     #saves file
     if(showResults){

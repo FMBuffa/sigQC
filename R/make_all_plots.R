@@ -37,7 +37,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.02-----")
+  print("-----sigQC Version 1.03-----")
   
   ###########Check the input
  radar_plot_values <- list();
@@ -120,6 +120,6 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
     close(log.con) #close connection to the file
   }else{
     print("Error: the length of names is not matching the number of elements in the expression matrices list.
-          You need to have a name for every dataset used.")
+          You need to have a name for every dataset and signature used.")
   }
 }
