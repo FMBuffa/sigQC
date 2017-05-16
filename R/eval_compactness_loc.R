@@ -14,7 +14,7 @@
 # @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
 # @keywords eval_compactness_loc
 
-eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
+eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values,logged,origin=NULL){
   #create new canvas for plotting if to be shown on screen
   if (showResults){
     grDevices::dev.new()
@@ -221,10 +221,13 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       }
       # the following computes the rank product
       # require(RankProd)
-      RP.out <-RankProd::RPadvance(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),origin =seq(1,length(names_datasets)) ,logged = F,gene.names=rownames(overall_rank_mat)) #
+      if(is.null(origin)){
+        origin <- rep(1,length(names_datasets))
+      }
+      RP.out <-RankProd::RPadvance(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),origin = origin ,logged = logged,gene.names=rownames(overall_rank_mat)) #
       RankProd::plotRP(RP.out ,cutoff=0.05)
       #compute the tables of up and down regulated genes
-      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=F, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
+      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=logged, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
       # output the rank product table to file
       if( (!is.null(table_rank_prod$Table1)) & (!is.null(table_rank_prod$Table2))){
           dir.create(file.path(out_dir,'rank_prod')) #create the dir

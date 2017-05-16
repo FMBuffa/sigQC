@@ -10,6 +10,8 @@
 #' @param thresholds A list of thresholds to be considered for each data set, default is median of the data set. A gene is considered expressed if above the threshold, non-expressed otherwise. One threshold per dataset, in the same order as the dataset list.
 #' @param out_dir A path to the directory where the resulting output files are written
 #' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
+#' @param logged Tells if the data has been log transformed or not, used in calculation of rank product if multiple datasets.
+#' @param origin Tells if datasets have come from different labs/experiments/machines. Is a vector of characters, with same character representing same origin. Default is assumption that all datasets come from the same source.
 #' @keywords make_all_plots
 #' @export
 #' @examples
@@ -27,17 +29,17 @@
 # ' names_sigs = c(signature)
 # ' out_dir = file.path('~', "sigQC_Test")
 # ' dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-# ' make_all_plots(names_datasets = names, names_sigs = names_sigs, gene_sigs_list = gene_sigs_list, mRNA_expr_matrix = mRNA_expr_matrix, out_dir = out_dir)
+# ' make_all_plots(names_datasets = names, names_sigs = names_sigs, gene_sigs_list = gene_sigs_list, mRNA_expr_matrix = mRNA_expr_matrix, out_dir = out_dir,logged=T)
 
 
 
-make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,names_datasets=NULL , covariates=NULL, thresholds=NULL, out_dir = '~', showResults = FALSE){
+make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, logged,names_sigs=NULL,names_datasets=NULL , covariates=NULL, thresholds=NULL, out_dir = '~', showResults = FALSE,origin=NULL){
 
   #### print version number
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.04-----")
+  print("-----sigQC Version 1.05-----")
   
   ###########Check the input
  radar_plot_values <- list();
@@ -73,6 +75,23 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   for(i in 1:length(names_sigs)){
     radar_plot_values[[names_sigs[i]]] <- list();
    }
+
+
+   #need to check that logged variable is a boolean
+   if(!is.logical(logged)){
+      stop("The logged variable must be specified as TRUE or FALSE.")
+
+   }
+
+   #need to check that the length of the origins variable is the same as the number of datasets
+   if (!is.null(origin)){
+    if (length(origin)!=length(names_datasets)){
+      stop("Need to specify an origin for each dataset present, in the order the datasets are listed.")
+    }
+   }
+
+
+
    #check that the legnths of the names are all equal
   if ((length(names_datasets)== length(mRNA_expr_matrix)) && (length(names_sigs)==length(gene_sigs_list))){
     ###########Check if the needed package exists otherwise install it
@@ -92,7 +111,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
              error=function(err){
                cat(paste0("Error occurred in eval_expr_loc: ",err), file=log.con, sep="\n")
              })
-    tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values ),
+    tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values,logged,origin ),
              error=function(err){
                cat(paste0("Error occurred during the evaluation of compactness: ",err), file=log.con, sep="\n")
              })
