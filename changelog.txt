@@ -1,3 +1,4 @@
+16/05/2017/Version 1.05: Further bug fix re: Rankproduct function; added parameters to main function: logged - T/F if data was log transformed or not (required) and origin - character vector of different origins of datasets, default is assumption that all datasets are same origin (both used for rankproduct).
 16/05/2017/Version 1.04: Small bug fix re: Rankproduct function
 15/05/2017/Version 1.03: Small bug fix re: handling of matrices with high concentrations of NA values - able to bypass these values to prevent errors.
 13/05/2017/Version 1.02: Small bug fix re: Coefficient of variance ratio in radar plot; added absolute values to maintain range in [0,1].
