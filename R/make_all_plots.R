@@ -13,21 +13,21 @@
 #' @keywords make_all_plots
 #' @export
 #' @examples
-#' names = c("dataset1")
-#' data.matrix = replicate(10, rnorm(20))#random matrix - 10 genes x 20 samples
-#' mRNA_expr_matrix = list()
-#' mRNA_expr_matrix[["dataset1"]] = data.matrix
-#' row.names(mRNA_expr_matrix$dataset1) <- as.character(1:(dim(mRNA_expr_matrix$dataset1)[1]))
-#' colnames(mRNA_expr_matrix$dataset1) <- as.character(1:(dim(mRNA_expr_matrix$dataset1)[2]))
-#' #Define the signature
-#' gene_sigs_list = list()
-#' signature = "hypoxiaSig"
-#' gene_sig = c('1', '4', '5')#gene ids
-#' gene_sigs_list[[signature]] = as.matrix(gene_sig)
-#' names_sigs = c(signature)
-#' out_dir = file.path('~', "sigQC_Test")
-#' dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-#' make_all_plots(names_datasets = names, names_sigs = names_sigs, gene_sigs_list = gene_sigs_list, mRNA_expr_matrix = mRNA_expr_matrix, out_dir = out_dir)
+# ' names = c("dataset1")
+# ' data.matrix = replicate(10, rnorm(20))#random matrix - 10 genes x 20 samples
+# ' mRNA_expr_matrix = list()
+# ' mRNA_expr_matrix[["dataset1"]] = data.matrix
+# ' row.names(mRNA_expr_matrix$dataset1) <- as.character(1:(dim(mRNA_expr_matrix$dataset1)[1]))
+# ' colnames(mRNA_expr_matrix$dataset1) <- as.character(1:(dim(mRNA_expr_matrix$dataset1)[2]))
+# ' #Define the signature
+# ' gene_sigs_list = list()
+# ' signature = "hypoxiaSig"
+# ' gene_sig = c('1', '4', '5')#gene ids
+# ' gene_sigs_list[[signature]] = as.matrix(gene_sig)
+# ' names_sigs = c(signature)
+# ' out_dir = file.path('~', "sigQC_Test")
+# ' dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+# ' make_all_plots(names_datasets = names, names_sigs = names_sigs, gene_sigs_list = gene_sigs_list, mRNA_expr_matrix = mRNA_expr_matrix, out_dir = out_dir)
 
 
 
@@ -37,7 +37,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix, names_sigs=NULL,nam
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.03-----")
+  print("-----sigQC Version 1.04-----")
   
   ###########Check the input
  radar_plot_values <- list();
