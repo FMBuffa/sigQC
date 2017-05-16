@@ -4,14 +4,16 @@
 \alias{make_all_plots}
 \title{make_all_plots.R}
 \usage{
-make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
+make_all_plots(gene_sigs_list, mRNA_expr_matrix, logged, names_sigs = NULL,
   names_datasets = NULL, covariates = NULL, thresholds = NULL,
-  out_dir = "~", showResults = FALSE)
+  out_dir = "~", showResults = FALSE, origin = NULL)
 }
 \arguments{
 \item{gene_sigs_list}{A list of genes representing the gene signature to be tested.}
 
 \item{mRNA_expr_matrix}{A list of expression matrices}
+
+\item{logged}{Tells if the data has been log transformed or not, used in calculation of rank product if multiple datasets.}
 
 \item{names_sigs}{The names of the gene signatures (e.g. Hypoxia, Invasiveness), one name per each signature in gene_sigs_list.}
 
@@ -24,6 +26,8 @@ make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
 \item{out_dir}{A path to the directory where the resulting output files are written}
 
 \item{showResults}{Tells if open dialog boxes showing the computed results. Default is FALSE}
+
+\item{origin}{Tells if datasets have come from different labs/experiments/machines. Is a vector of characters, with same character representing same origin. Default is assumption that all datasets come from the same source.}
 }
 \description{
 Makes all the plots for the quality control of the list(s) of genes.
