@@ -1,3 +1,4 @@
+16/05/2017/Version 1.04: Small bug fix re: Rankproduct function
 15/05/2017/Version 1.03: Small bug fix re: handling of matrices with high concentrations of NA values - able to bypass these values to prevent errors.
 13/05/2017/Version 1.02: Small bug fix re: Coefficient of variance ratio in radar plot; added absolute values to maintain range in [0,1].
 12/05/2017/Version 1.01: Small bug fix re: calculating proportion of expressed/NA genes, accounting for genes not present as rownnames in the dataset.
