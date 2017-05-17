@@ -26,18 +26,56 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   #the following creates the legend
   for(k in 1:length(names_sigs) ){
     for(i in 1:length(names_datasets)){
-      legend_labels <- c(legend_labels,paste0(names_datasets[i],' ',names_sigs[k]))
+      legend_labels <- c(legend_labels,paste0(names_datasets[i],' ',names_sigs[k],' (XXXX)'))
       legend_cols <- c(legend_cols,i)
       legend_lty <- c(legend_lty, k)
     }
   }
   row.names(radar_plot_mat) <- c('max','min',legend_labels) 
+
+#find the max number of characters in the title for legend fontsize
+  max_title_length <- -999
+  for(k in 1:length(names_sigs)){
+    for( i in 1:length(names_datasets)){
+      if(max_title_length < nchar(paste0(names_datasets[i],' ',names_sigs[k]))){
+        max_title_length <- nchar(paste0(names_datasets[i],' ',names_sigs[k]))
+      }
+    }
+  }
+
+  #for calculating the legend box size
+  l <-  graphics::legend(0.05,0, legend=legend_labels, seg.len=2, title="Datasets",lty=legend_lty,
+                   bty="n" ,lwd=1, col=legend_cols,cex=min(0.8,3*10/max_title_length),plot=F)
+
+  # # calculate right margin width in ndc
+  # w <- graphics::grconvertX(l$rect$w, to='ndc') - graphics::grconvertX(0, to='ndc')
+  # print(graphics::grconvertY(l$rect$h, to='ndc')) - graphics::grconvertY(0, to='ndc')
+
+
+  radius <- 1.5
+  if (graphics::grconvertX(l$rect$h,from="ndc",to="device") > radius){
+    x_dist <- radius
+  }else{
+    x_dist <- sqrt((radius^2) - ((radius - graphics::grconvertX(l$rect$h,from="ndc",to="device"))^2))
+  }
+
+  padding <-  (graphics::grconvertX(x_dist,from="user",to="device") + graphics::grconvertX(l$rect$w,from="ndc",to="device")) - graphics::grconvertX(radius,from="user",to="device") #for the legend
+
+  padding <- padding * (padding > 0) #needs to be positive
+  padding <- graphics::grconvertX(padding,from='device',to="inches")
+
   #set up plotting area
   if (showResults){
     grDevices::dev.new()
   }else{
     grDevices::pdf(file.path(out_dir,'sig_radarplot.pdf'),width=10,height=10)
   }
+
+  # graphics::par(omd=c(0, 1-w, 0, 1 ),xpd=T)
+  orig_par <- graphics::par('mai')
+  
+    graphics::par(xpd=TRUE,mai=(graphics::par('mai') + c(0,0,0,padding)))
+
   # compute the area ratios
   areas <- c()
   #first we calculate the area of each dataset/gene signature drawn on the radar plot
@@ -77,20 +115,8 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
 
   # graphics::plot.new()
   #then we output the legend
-  graphics::par(xpd=TRUE)
 
-  #find the max number of characters in the title for legend fontsize
-  max_title_length <- -999
-  for(k in 1:length(names_sigs)){
-    for( i in 1:length(names_datasets)){
-      if(max_title_length < nchar(paste0(names_datasets[i],' ',names_sigs[k]))){
-        max_title_length <- nchar(paste0(names_datasets[i],' ',names_sigs[k]))
-      }
-    }
-  }
-
-
-  graphics::legend(0.5,1.45, legend=legend_labels, seg.len=2, title="Datasets",lty=legend_lty,
+  graphics::legend(x_dist , 1.25, xpd=NA,legend=legend_labels, seg.len=2, title="Datasets",lty=legend_lty,
                    bty="n" ,lwd=1, col=legend_cols,cex=min(0.8,3*10/max_title_length))
   #save the plot
   if(showResults){
@@ -104,5 +130,7 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   utils::write.table(radar_plot_mat[3:(dim(radar_plot_mat)[1]),],file=file.path(out_dir,'radarchart_table', paste0('radarchart_table','.txt')),quote=F,sep='\t')
 
   cat('Radar chart made successfully.\n', file=file) #output to log
+   graphics::par(mar=orig_par)
+
 
 }

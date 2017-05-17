@@ -224,10 +224,10 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       if(is.null(origin)){
         origin <- rep(1,length(names_datasets))
       }
-      RP.out <-RankProd::RPadvance(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),origin = origin ,logged = logged,gene.names=rownames(overall_rank_mat)) #
+      RP.out <-RankProd::RPadvance(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),origin = origin ,logged = T,gene.names=rownames(overall_rank_mat)) #
       RankProd::plotRP(RP.out ,cutoff=0.05)
       #compute the tables of up and down regulated genes
-      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=logged, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
+      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=T, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
       # output the rank product table to file
       if( (!is.null(table_rank_prod$Table1)) & (!is.null(table_rank_prod$Table2))){
           dir.create(file.path(out_dir,'rank_prod')) #create the dir
