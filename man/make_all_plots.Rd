@@ -4,7 +4,7 @@
 \alias{make_all_plots}
 \title{make_all_plots.R}
 \usage{
-make_all_plots(gene_sigs_list, mRNA_expr_matrix, logged, names_sigs = NULL,
+make_all_plots(gene_sigs_list, mRNA_expr_matrix, names_sigs = NULL,
   names_datasets = NULL, covariates = NULL, thresholds = NULL,
   out_dir = "~", showResults = FALSE, origin = NULL)
 }
@@ -12,8 +12,6 @@ make_all_plots(gene_sigs_list, mRNA_expr_matrix, logged, names_sigs = NULL,
 \item{gene_sigs_list}{A list of genes representing the gene signature to be tested.}
 
 \item{mRNA_expr_matrix}{A list of expression matrices}
-
-\item{logged}{Tells if the data has been log transformed or not, used in calculation of rank product if multiple datasets.}
 
 \item{names_sigs}{The names of the gene signatures (e.g. Hypoxia, Invasiveness), one name per each signature in gene_sigs_list.}
 
