@@ -103,7 +103,7 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
                    vlabels = c('Ratio of\nMed. SD','Skew Ratio','Prop in\ntop 10% var','Prop in\ntop 25% var','Prop in\ntop 50% var','Coef. of Var. \nRatio',
                                'Med. non-NA Prop.','Med. Prop.\nExpressed',
                                'Med. Autocor.','Mean, Med.\nScore Cor.',
-                               'PCA1, Med.\nScore Cor.','Mean, PCA1\nScore Cor.',
+                               'PCA1, Med.\nScore Cor.','Mean, PCA1\nScore Cor.', 'Prop. Var. \nby PCA1',
                                'Med., Z_Med.\nScore Cor.'),
                    vlcex = 0.8,
                    title='Signature Summary',

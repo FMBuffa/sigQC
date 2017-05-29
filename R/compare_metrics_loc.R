@@ -168,10 +168,12 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
         bars_plot <- props_of_variances[1:min(10,length(props_of_variances))]
         graphics::barplot(bars_plot,main="PCA vs proportion\n of variance") #ylim= c(0,1),
         graphics::mtext(side = 1, line = 2, 'PCA',cex=0.8)
+        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_pca1_var']<- bars_plot[1]
       }else{
        # graphics::par(new=T)
         graphics::plot.new()
         graphics::title(paste0('\n\nToo many NA values for PCA1 in \n',names_datasets[i],' ',names_sigs[k]))#cex=min(1,4*10/max_title_length))
+        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['prop_pca1_var']<- 0
       }
     }
     #saves file

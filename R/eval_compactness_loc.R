@@ -62,20 +62,25 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
 
     #the following draws the heatmaps for the autocorrelation
     tryCatch({
+      # plot.new()
+     # strwd <-  strwidth(max(nchar(rownames(autocors))), units = "figure", cex = max(min(0.5,(4*4/length(rownames(autocors)))),0.06))
+     # print(max(nchar(rownames(autocors))))
+     # print(strwd)
       gplots::heatmap.2( stats::na.omit(autocors),
                          col = gplots::colorpanel(100,"blue","white","red"), #redgreen(100),#colorpanel(100,"red","yellow","green"),
                          trace = "none",
-                         xlab = "Gene ID",
-                         ylab="Gene ID",
+                     #    xlab = "Gene ID",
+                     #    ylab="Gene ID",
                          na.color="grey",
                          labRow=rownames(autocors),
                          labCol=colnames(autocors),#gene_sig,
                          main = paste0("\n\nAutocorrelation\n", names_datasets[[dataset_ind]] ,' ',names_sigs[[sig_ind]]),
                          dendrogram = "col",
                          symbreaks = T,
-                         Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),cexCol=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),margins=c(4,4))
+                         Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),cexCol=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),margins=c(1+(max(nchar(rownames(autocors)))/2),1+ (max(nchar(rownames(autocors)))/2)))
     
     },
+
     error=function(err){
       graphics::plot.new()
       graphics::title(paste0('\n\nToo many NA values in \n',names_datasets[dataset_ind],' ',names_sigs[sig_ind]))#cex=min(1,4*10/max_title_length))
@@ -94,7 +99,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
 #because we want the legend outside the plot, first we calculate the width of the legend to get the right sized canvas
   #code from stackoverflow. 
   grDevices::dev.off() # to reset the graphics pars to defaults
-  graphics::par(mar=c(0,0,0,0))#c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
+  graphics::par(mar=c(0,0,0,0),cex=0.6)#c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
   graphics::plot.new()
 
   legend_names <- c()
@@ -108,13 +113,11 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     }
   }
 
-  l <-  graphics::legend(0.05, 0,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(1,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)), plot=FALSE)
+  l <-  graphics::legend(0, 0,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(1,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)), plot=FALSE)
   # calculate right margin width in ndc
-  w <- graphics::grconvertX(l$rect$w, to='ndc') - graphics::grconvertX(0, to='ndc')
-  #grDevices::dev.off() # to reset the graphics pars to defaults
-
-#  par()
-
+  w <- graphics::grconvertX(l$rect$w, to='ndc')- graphics::grconvertX(0, to='ndc')
+  w <- graphics::grconvertX(w,from="ndc",to="inches") + graphics::grconvertX(10,from="device",to="inches") #add a bit of padding around legend
+  
  #sets up the graphical parameters
 
   #sets up a new graphics object
@@ -125,9 +128,9 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   }
    
 
-  graphics::par(cex.main=0.8,cex.lab = 0.6,omd=c(0, 1-w, 0, 1 ),mar=c(3,3,4,1),mfrow=c(1,1))
+  graphics::par(cex.main=0.8,cex.lab = 0.6,mar=c(3,3,4,1),mfrow=c(1,1),xpd=TRUE,omi=(c(0,0,0,w)))
 
-
+#  graphics::par(xpd=TRUE,mai=(graphics::par('mai') + c(0,0,0,padding)))
 
 
   #the following is to set up the right y limit on the autocorrelation density plot (first we need to know the maximum of the density plots)
@@ -229,9 +232,13 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       #compute the tables of up and down regulated genes
       table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=T, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
       # output the rank product table to file
-      if( (!is.null(table_rank_prod$Table1)) & (!is.null(table_rank_prod$Table2))){
-          dir.create(file.path(out_dir,'rank_prod')) #create the dir
+      if( (!is.null(table_rank_prod$Table1))) {
+        dir.create(file.path(out_dir,'rank_prod')) #create the dir
           utils::write.csv(table_rank_prod$Table1,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table1_',names_sigs[k],'.txt')),quote=F,sep='\t')
+
+      }
+      if (!is.null(table_rank_prod$Table2)){
+          dir.create(file.path(out_dir,'rank_prod')) #create the dir
           utils::write.csv(table_rank_prod$Table2,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table2_',names_sigs[k],'.txt')),quote=F,sep='\t')
       }
       
