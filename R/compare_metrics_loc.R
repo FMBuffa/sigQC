@@ -149,10 +149,10 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       #here we output the table of mean, median and pca1 scores for each sample to a table
       if(length(pca1_scores) > 1){#(!is.null(pca1_scores)){
         output_mat <- cbind(mean_scores[common_score_cols],cbind(med_scores[common_score_cols],pca1_scores[common_score_cols]))
-        colnames(output_mat) <- c('Mean Scores','Median Scores','PCA1 Scores')
+        colnames(output_mat) <- c('Mean_Scores','Median_Scores','PCA1_Scores')
       }else{
         output_mat <- cbind(mean_scores[common_score_cols],med_scores[common_score_cols])
-        colnames(output_mat) <- c('Mean Scores','Median Scores')
+        colnames(output_mat) <- c('Mean_Scores','Median_Scores')
 
       }
 

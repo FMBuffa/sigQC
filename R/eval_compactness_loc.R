@@ -229,18 +229,25 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       }
       RP.out <-RankProd::RPadvance(data = overall_rank_mat,cl = rep(1,times=length(names_datasets)),origin = origin ,logged = T,gene.names=rownames(overall_rank_mat)) #
       RankProd::plotRP(RP.out ,cutoff=0.05)
-      #compute the tables of up and down regulated genes
-      table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=T, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
-      # output the rank product table to file
-      if( (!is.null(table_rank_prod$Table1))) {
-        dir.create(file.path(out_dir,'rank_prod')) #create the dir
-          utils::write.csv(table_rank_prod$Table1,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table1_',names_sigs[k],'.txt')),quote=F,sep='\t')
+      #the following will calcualte the full output table for the rank prod and save it sorted two ways
+      table_rank_prod <- cbind(RP.out$pfp,RP.out$pval,RP.out$RPs)
+      colnames(table_rank_prod) <- c(paste0("pfp_",colnames(RP.out$pfp)),paste0('p_val',colnames(RP.out$pval)),paste0("Rank_Product_",colnames(RP.out$RPs)))
+      dir.create(file.path(out_dir,'rank_prod')) #create the dir
+      utils::write.csv(table_rank_prod[order(table_rank_prod[,1]),],file=file.path(out_dir, 'rank_prod',paste0('rank_product_table1_',names_sigs[k],'.txt')),quote=F,sep='\t')
+      utils::write.csv(table_rank_prod[order(table_rank_prod[,2]),],file=file.path(out_dir, 'rank_prod',paste0('rank_product_table2_',names_sigs[k],'.txt')),quote=F,sep='\t')
 
-      }
-      if (!is.null(table_rank_prod$Table2)){
-          dir.create(file.path(out_dir,'rank_prod')) #create the dir
-          utils::write.csv(table_rank_prod$Table2,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table2_',names_sigs[k],'.txt')),quote=F,sep='\t')
-      }
+      # #compute the tables of up and down regulated genes
+      # table_rank_prod <- RankProd::topGene(RP.out,cutoff=0.05,method="pfp",logged=T, gene.names=rownames(overall_rank_mat))#intersect(gene_sig[,1],rownames(mRNA_expr_matrix[[names_datasets[i]]])))
+      # # output the rank product table to file
+      # if( (!is.null(table_rank_prod$Table1))) {
+      #   dir.create(file.path(out_dir,'rank_prod')) #create the dir
+      #     utils::write.csv(table_rank_prod$Table1,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table1_',names_sigs[k],'.txt')),quote=F,sep='\t')
+
+      # }
+      # if (!is.null(table_rank_prod$Table2)){
+      #     dir.create(file.path(out_dir,'rank_prod')) #create the dir
+      #     utils::write.csv(table_rank_prod$Table2,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table2_',names_sigs[k],'.txt')),quote=F,sep='\t')
+      # }
       
       cat("Autocorrelation rank product successfully computed.\n", file=file) #output to log file
 

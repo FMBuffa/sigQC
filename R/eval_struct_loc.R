@@ -29,16 +29,54 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     }
   }
   #Next we loop through and generate the heatmaps for expression 
+
+  #first we do a check to ensure that all heatmpas have the same genes as rows and add NA values if not
+  #first let's get all possible rows expressed of the signature across all samples
+  all_row_names <- list() #stores the unique rownames for each signature
+  for (k in 1:length(names_sigs)){
+    all_row_names[[names_sigs[k]]] <- c()
+    gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+
+    for (i in 1:length(names_datasets)){
+
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
+      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
+
+      all_row_names[[names_sigs[k]]] <- c(all_row_names[[names_sigs[k]]],inter)
+    }
+     all_row_names[[names_sigs[k]]] <- unique(all_row_names[[names_sigs[k]]])
+  }
+  #now that we know the unique rownames for each signature, we should go through and generate the heatmap matrices with appended min values
+  sig_scores_all_mats <- list() #this will be the list of signature score matrices 
+  for (k in 1:length(names_sigs)){
+    sig_scores_all_mats[[names_sigs[k]]] <- list()
+    gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+
+    for (i in 1:length(names_datasets)){
+      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
+      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
+      sig_scores <- (as.matrix(data.matrix[inter,])) #compute the signature scores
+      #now let's see how many rows of NA values we need to add
+      rows_needed <- setdiff(all_row_names[[names_sigs[k]]],inter)
+      if(length(rows_needed >0)){
+        sig_scores <- rbind(sig_scores,matrix(min(sig_scores),nrow=length(rows_needed),ncol=dim(sig_scores)[2]))
+        row.names(sig_scores) <- c(inter,rows_needed)
+      }
+      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores
+    }
+  }
+
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
     hmaps <- sapply(1:length(names_datasets),function(i) { 
       #this is a subroutine to create a list of heatmaps stored in hmaps that can be plotted
 
-      data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
+      # data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
+      # inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
 
-      sig_scores <- (as.matrix(data.matrix[inter,])) #compute the signature scores
-      #  print(sig_scores)
+      # sig_scores <- (as.matrix(data.matrix[inter,])) #compute the signature scores
+      # #  print(sig_scores)
+      sig_scores <- sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]]
       tryCatch({
         if (length(covariates[[names_datasets[i]]]) ==0){
 

@@ -168,7 +168,7 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       gene_expr_vals_na[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
 
       output_table <- cbind(gene_expr_vals,gene_expr_vals_na)
-      colnames(output_table) <- c('Proportion above threshold','NA proportion')
+      colnames(output_table) <- c('Proportion_above_threshold','NA proportion')
       utils::write.table(output_table,file=file.path(out_dir,'expression_tables', paste0('expression_table_',names_sigs[k],'_',names_datasets[i],'.txt')),quote=F,sep='\t')
     }
   }
