@@ -38,7 +38,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.08-----")
+  print("-----sigQC Version 1.09-----")
   
   ###########Check the input
  radar_plot_values <- list();
@@ -76,7 +76,6 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
     radar_plot_values[[names_sigs[i]]] <- list();
    }
 
-
    #need to check that the length of the origins variable is the same as the number of datasets
    if (!is.null(origin)){
     if (length(origin)!=length(names_datasets)){
@@ -86,6 +85,10 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       stop("Need to ensure that there are at least 2 datasets from each origin.")
     }
   }
+
+
+    
+
      #check that the legnths of the names are all equal
   if ((length(names_datasets)== length(mRNA_expr_matrix)) && (length(names_sigs)==length(gene_sigs_list))){
 
@@ -99,6 +102,57 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
     log.con = file(logfile.path, open = "a") #open the logfile
     #run each of the sub functions
     cat(paste("LOG FILE CREATED: ",Sys.time(), sep=""), file=log.con, sep="\n") #start the log file
+
+    #check that the signatures are of length >= 2, if not, we remove it
+    sigs_to_remove_ind <- c()
+    for (k in 1:length(names_sigs)){
+      gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
+      if(length(gene_sig[,1]) < 2){
+        sigs_to_remove_ind <- c(sigs_to_remove_ind,k)
+#        stop("Every signature must contain at least 2 elements.")
+       }      
+    }
+    #remove the offending signatures
+    if (length(sigs_to_remove_ind) > 0){
+      gene_sigs_list[names_sigs[k]] <- NULL
+      for(j in 1:length(sigs_to_remove_ind)){
+        cat(paste0("Need at least 2 elements per signature (signature removed): ",names_sigs[sigs_to_remove_ind[j]]), file=log.con, sep="\n")
+      }
+      names_sigs <- names_sigs[-sigs_to_remove_ind]#NULL
+    }
+
+    if(length(names_sigs) == 0){
+      stop("No signatures contained at least 2 signature elements.") #if all signatures have been removed, then we have to stop
+    }
+    
+    #first we must check that the genes of the signature are actually present in the datasets...
+    datasets_to_remove_ind <- c()
+    for (k in 1:length(names_sigs)){
+      gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
+      for(i in 1:length(names_datasets)){
+        data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load in the data matrix
+        inter <- intersect(gene_sig[,1], row.names(data.matrix)) #make sure the genes are present in the dataset
+        if(length(inter) < 2){
+          #we need to exclude this dataset from further analysis because not enough signature genes are present
+          datasets_to_remove_ind <- c(datasets_to_remove_ind,i)
+        }
+      }
+    }
+    datasets_to_remove_ind <- unique(datasets_to_remove_ind)
+    if(length(datasets_to_remove_ind) > 0) {
+      #now we do the removal
+      mRNA_expr_matrix[names_datasets[datasets_to_remove_ind]] <- NULL
+      #write it out that we've removed these datasets
+      for(j in 1:length(datasets_to_remove_ind)){
+        cat(paste0("Not enough signature genes present in dataset (dataset removed): ",names_datasets[datasets_to_remove_ind[j]]), file=log.con, sep="\n")
+      }
+      names_datasets <- names_datasets[-datasets_to_remove_ind]#NULL
+    }
+    
+    if(length(names_datasets) == 0){
+      stop("No datasets expressed at least 2 signature elements.") #if all datasets have been removed, then we have to stop
+    }
+
     tryCatch(radar_plot_values <- eval_var_loc(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values),
              error=function(err){
                cat(paste0("Error occurred in eval_var_loc: ",err), file=log.con, sep="\n")
