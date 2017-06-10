@@ -127,7 +127,25 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   #output the radarchart table to file
   dir.create(file.path(out_dir,'radarchart_table'))
 
-  utils::write.table(radar_plot_mat[3:(dim(radar_plot_mat)[1]),],file=file.path(out_dir,'radarchart_table', paste0('radarchart_table','.txt')),quote=F,sep='\t')
+  #the following creates the radarplot rownames
+  radarplot_rownames <- c()
+  for(k in 1:length(names_sigs) ){
+    for(i in 1:length(names_datasets)){
+      radarplot_rownames <- c(radarplot_rownames,paste0(gsub(' ','.', names_datasets[i]),'_',gsub(' ','.', names_sigs[k])))
+    }
+  }
+ 
+  radar_plot_mat <- radar_plot_mat[3:(dim(radar_plot_mat)[1]),]
+  radar_plot_mat <- as.matrix(radar_plot_mat)
+
+  if(length(radarplot_rownames)==1){
+    new_colnames <- rownames(radar_plot_mat)
+    dim(radar_plot_mat) <- c(1,length(radar_plot_mat))
+    colnames(radar_plot_mat) <- new_colnames
+  }
+  row.names(radar_plot_mat) <- radarplot_rownames
+
+  utils::write.table(radar_plot_mat,file=file.path(out_dir,'radarchart_table', paste0('radarchart_table','.txt')),quote=F,sep='\t',row.names=T,col.names=T)
 
   cat('Radar chart made successfully.\n', file=file) #output to log
    graphics::par(mar=orig_par)

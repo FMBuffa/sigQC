@@ -38,7 +38,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.09-----")
+  print("-----sigQC Version 1.10-----")
   
   ###########Check the input
  radar_plot_values <- list();
@@ -124,7 +124,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
     if(length(names_sigs) == 0){
       stop("No signatures contained at least 2 signature elements.") #if all signatures have been removed, then we have to stop
     }
-    
+
     #first we must check that the genes of the signature are actually present in the datasets...
     datasets_to_remove_ind <- c()
     for (k in 1:length(names_sigs)){
