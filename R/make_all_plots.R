@@ -11,6 +11,8 @@
 #' @param out_dir A path to the directory where the resulting output files are written
 #' @param showResults Tells if open dialog boxes showing the computed results. Default is FALSE
 #' @param origin Tells if datasets have come from different labs/experiments/machines. Is a vector of characters, with same character representing same origin. Default is assumption that all datasets come from the same source.
+#' @param doNegativeControl Logical, tells the function if negative controls must be computed. TRUE by default.
+#' @param numResampling Number of re-samplings (50 by default) during negative controls
 #' @keywords make_all_plots
 #' @export
 #' @examples
@@ -32,14 +34,14 @@
 
 
 
-make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,names_datasets=NULL , covariates=NULL, thresholds=NULL, out_dir = '~', showResults = FALSE,origin=NULL){
+make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,names_datasets=NULL , covariates=NULL, thresholds=NULL, out_dir = file.path('~', "sigQC"), showResults = FALSE,origin=NULL, doNegativeControl=TRUE, numResampling=50){
 
   #### print version number
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.10-----")
-  
+  print("-----sigQC Version 1.11-----")
+
   ###########Check the input
  radar_plot_values <- list();
   #check that there is a list of gene signatures
@@ -87,7 +89,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   }
 
 
-    
+
 
      #check that the legnths of the names are all equal
   if ((length(names_datasets)== length(mRNA_expr_matrix)) && (length(names_sigs)==length(gene_sigs_list))){
@@ -110,7 +112,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       if(length(gene_sig[,1]) < 2){
         sigs_to_remove_ind <- c(sigs_to_remove_ind,k)
 #        stop("Every signature must contain at least 2 elements.")
-       }      
+       }
     }
     #remove the offending signatures
     if (length(sigs_to_remove_ind) > 0){
@@ -148,7 +150,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       }
       names_datasets <- names_datasets[-datasets_to_remove_ind]#NULL
     }
-    
+
     if(length(names_datasets) == 0){
       stop("No datasets expressed at least 2 signature elements.") #if all datasets have been removed, then we have to stop
     }
@@ -161,7 +163,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
              error=function(err){
                cat(paste0("Error occurred in eval_expr_loc: ",err), file=log.con, sep="\n")
              })
-    tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values,logged,origin ),
+    tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values,logged=T,origin ),
              error=function(err){
                cat(paste0("Error occurred during the evaluation of compactness: ",err), file=log.con, sep="\n")
              })
@@ -183,6 +185,13 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
              error=function(err){
                cat(paste0("Error occurred in make_radar_chart_loc: ",err), file=log.con, sep="\n")
              })
+    if(doNegativeControl){
+      tryCatch(.sigsQcNegativeControl(genesList=gene_sigs_list, expressionMatrixList=mRNA_expr_matrix, outputDir=out_dir, logFile=logfile.path, numResampling=numResampling),
+        error=function(err){
+          cat(paste0("Error occurred during the execution of negative controls: ",err), file=log.con, sep="\n")
+        }
+      )
+    }
 
     if(!showResults)
       grDevices::graphics.off() #make sure that everything is closed

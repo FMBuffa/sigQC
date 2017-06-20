@@ -14,7 +14,7 @@
 # @param radar_plot_values A list of values that store computations that will be used in the final summary radarplot
 # @keywords eval_compactness_loc
 
-eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values,logged,origin=NULL){
+eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values,logged=T,origin=NULL){
   #create new canvas for plotting if to be shown on screen
   if (showResults){
     grDevices::dev.new()
@@ -35,7 +35,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
 
   #sets up graphics parameters for the plotting area
   graphics::par(cex.main=min(0.8,(3*6/max_title_length)),cex.lab = 0.6,oma=c(2,0,0,0),mar=c(0,0,0,0))
-  #in the following, we compute each of the autocorrelation heatmaps 
+  #in the following, we compute each of the autocorrelation heatmaps
   hmaps <- lapply(1:(length(names_sigs) *length(names_datasets)),function(i) {
     # first take the combined index i, and figure out it's index as an array index over a grid for each dataset and each signature
     dataset_ind <- i %% length(names_datasets)
@@ -78,7 +78,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
                          dendrogram = "col",
                          symbreaks = T,
                          Rowv = T,Colv=T ,key.xlab='Rho',key.ylab=NA,  key.title=NA,cexRow=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),cexCol=max(min(0.5,(4*4/length(rownames(autocors)))),0.06),margins=c(1+(max(nchar(rownames(autocors)))/2),1+ (max(nchar(rownames(autocors)))/2)))
-    
+
     },
 
     error=function(err){
@@ -97,7 +97,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   grDevices::dev.off()
 
 #because we want the legend outside the plot, first we calculate the width of the legend to get the right sized canvas
-  #code from stackoverflow. 
+  #code from stackoverflow.
   grDevices::dev.off() # to reset the graphics pars to defaults
   graphics::par(mar=c(0,0,0,0),cex=0.6)#c(par('mar')[1:3], 0)) # optional, removes extraneous right inner margin space
   graphics::plot.new()
@@ -117,7 +117,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   # calculate right margin width in ndc
   w <- graphics::grconvertX(l$rect$w, to='ndc')- graphics::grconvertX(0, to='ndc')
   w <- graphics::grconvertX(w,from="ndc",to="inches") + graphics::grconvertX(10,from="device",to="inches") #add a bit of padding around legend
-  
+
  #sets up the graphical parameters
 
   #sets up a new graphics object
@@ -126,7 +126,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   }else{
     grDevices::pdf(file.path(out_dir,'sig_autocor_dens.pdf'),width=5,height=5)
   }
-   
+
 
   graphics::par(cex.main=0.8,cex.lab = 0.6,mar=c(3,3,4,1),mfrow=c(1,1),xpd=TRUE,omi=(c(0,0,0,w)))
 
@@ -141,7 +141,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     for (i in 1:length(names_datasets) ){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
       inter <- intersect(gene_sig[,1], row.names(data.matrix))
-      autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') 
+      autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
       # print(paste0("autocor dim", dim(autocors)))
       # print(autocors)
       if(dim(autocors)[1] > 1){
@@ -157,7 +157,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     }
   }
   #the following actually draws the density plots for each signature and dataset
-  
+
   plots_count <- 0
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
@@ -187,7 +187,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   graphics::mtext(side = 3, line = 2,'Autocorrelation Density')
   # makes the legend for the plot (sets parameters)
   op <- graphics::par(cex=0.6)#,xpd=T)
-  
+
   graphics::legend(graphics::par('usr')[2]+0.05, graphics::par('usr')[4],xpd=NA,legend_names,col=legend_cols,lty=legend_lty,lwd=rep(1,times=(length(names_datasets) * length(names_sigs))),pt.cex=1,cex=min(0.5,(4*10/max_title_length)))
   #saves the plot to file
   if(showResults){
@@ -203,14 +203,14 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     if (showResults){
       grDevices::dev.new()
     }else{
-      grDevices::pdf(file.path(out_dir,paste0('sig_autocor_rankProd_',names_sigs[k],'.pdf')),width=10,height=10) 
+      grDevices::pdf(file.path(out_dir,paste0('sig_autocor_rankProd_',names_sigs[k],'.pdf')),width=10,height=10)
     }
 
     graphics::par(cex.main=0.8,cex.lab = 0.6,oma=c(2,2,2,2),mar=c(4,4,4,4)) #set drawing parameters
 
     #now we take the median of the genes' autocorrelation for each gene in each dataset and then look at the rank product over the different cancer types
     #note that the rank product analysis is only done if there is more than one dataset (otherwise not done, and is doen separately for each gene signature)
-      overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig[,1])),ncol=length(names_datasets)) 
+      overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig[,1])),ncol=length(names_datasets))
       #create the overall matrix of datsets and signature genes containing the
       #median gene autocorrelation for each dataset
       row.names(overall_rank_mat) <- unique(gene_sig[,1])
@@ -248,7 +248,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
       #     dir.create(file.path(out_dir,'rank_prod')) #create the dir
       #     utils::write.csv(table_rank_prod$Table2,file=file.path(out_dir, 'rank_prod',paste0('rank_product_table2_',names_sigs[k],'.txt')),quote=F,sep='\t')
       # }
-      
+
       cat("Autocorrelation rank product successfully computed.\n", file=file) #output to log file
 
     #save the rank product plot
