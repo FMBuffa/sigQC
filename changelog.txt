@@ -1,3 +1,5 @@
+20/06/2017/Version 1.12: Fixed a tiny bug causing the warning for the heatmaps, removed borders around the barplots, added more colours (dynamic based on how many datasets there are) for the radarplot, no longer outputting the threshold value for binarization as it is just the median.
+20/06/2017/Version 1.11: Alessandro added bootstrap resampling + bug fixes.
 10/06/2017/Version 1.10: Fixed outptutting of radarchart_table.txt for consistency. Rowname format now standardised to have '.' replacing spaces in the signature name or dataset name and have an '_' between the signature and dataset name.
 31/05/2017/Version 1.09: Added error checking to ensure that every gene signature has at least 2 elements, and that every dataset contains at least 2 expressed elemetns of each signature, otherwise the signature/dataset is removed.
 30/05/2017/Version 1.08: Numerous bug fixes, added underscores to headers of output tables, rank product now outputting for all genes, fix for complexheatmap issue with differing numbers of rows.
