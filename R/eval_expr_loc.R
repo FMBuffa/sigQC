@@ -56,9 +56,9 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       gene_expr_vals <- -sort(-gene_expr_vals)
       #make the barplot; if all are zero, we manually set the limits for the barplot
       if(max(gene_expr_vals)==0){
-        bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion of NA expression ",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,ylim=c(0,1),cex.main=min(1,4*12/max_line_length))
+        bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion of NA expression ",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,ylim=c(0,1),cex.main=min(1,4*12/max_line_length), border = NA)
       }else{
-        bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion of NA expression ",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,cex.main=min(1,4*12/max_line_length))
+        bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion of NA expression ",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,cex.main=min(1,4*12/max_line_length), border = NA)
 
       }
       graphics::text(bar_expr, graphics::par("usr")[3], labels = names(gene_expr_vals), srt = 45, adj = c(1.1,1.1), xpd = TRUE, cex=max(min(0.5,(0.5*4*12)/(sqrt(2) * length(gene_expr_vals))),0.06))
@@ -108,7 +108,7 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
       gene_expr_vals <- sort(gene_expr_vals) 
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['med_prop_above_med'] <- stats::median(gene_expr_vals) #store median value for final radar plot
       #create bar graph
-      bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion with expression above threshold",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,cex.main=min(1,4*12/max_line_length))
+      bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion with expression above threshold",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,cex.main=min(1,4*12/max_line_length), border = NA)
       graphics::text(bar_expr, graphics::par("usr")[3], labels = names(gene_expr_vals), srt = 45, adj = c(1.1,1.1), xpd = TRUE, cex=max(min(0.5,(0.5*4*12)/(sqrt(2) * length(gene_expr_vals))),0.06))
       graphics::axis(2)
     }

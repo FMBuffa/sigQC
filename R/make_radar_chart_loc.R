@@ -14,6 +14,7 @@
 
 make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sigs,names_datasets, out_dir = '~',file){
   radar_plot_mat <- c()
+  colours_array <- grDevices::rainbow(length(names_datasets))
   # first we need to flatten this list into a matrix that we can use with the radar plot plotting function
   for(k in 1:length(names_sigs)){
     t <- lapply(radar_plot_values[[names_sigs[k]]],function(x) radar_plot_mat <<- rbind(radar_plot_mat,x))
@@ -27,7 +28,7 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   for(k in 1:length(names_sigs) ){
     for(i in 1:length(names_datasets)){
       legend_labels <- c(legend_labels,paste0(names_datasets[i],' ',names_sigs[k],' (XXXX)'))
-      legend_cols <- c(legend_cols,i)
+      legend_cols <- c(legend_cols,colours_array[i])
       legend_lty <- c(legend_lty, k)
     }
   }

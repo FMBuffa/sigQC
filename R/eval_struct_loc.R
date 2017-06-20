@@ -62,7 +62,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
         sig_scores <- rbind(sig_scores,matrix(min(sig_scores),nrow=length(rows_needed),ncol=dim(sig_scores)[2]))
         row.names(sig_scores) <- c(inter,rows_needed)
       }
-      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores
+      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores[gene_sig[,1],]
     }
   }
 
@@ -204,7 +204,13 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     }
 
     #the following does the binarization of the matrix
-    x <- biclust::binarize(stats::na.omit(t(sig_scores)))#discretize(stats::na.omit(t(sig_scores)),nof=10,quant=F)
+     threshold <- min(na.omit(t(sig_scores)))+(max(na.omit(t(sig_scores)))-min(na.omit(t(sig_scores))))/2
+    x <- stats::na.omit(t(sig_scores)) #> threshold) * 1
+    x[x<=threshold] <- 0
+    x[x>threshold] <- 1
+    # print(paste0('thresh ',threshold))
+    # x <- biclust::binarize(stats::na.omit(t(sig_scores)))#discretize(stats::na.omit(t(sig_scores)),nof=10,quant=F)
+ 
     #the following if statement creates the parameters for the biclustering algorithm; namely the number of columns to take in each
     #repetition of the biclustering algorithm (we use BCCC) - this is dependent on the size of the matrix
 
@@ -278,7 +284,11 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
       sig_scores[gene,] <- (as.numeric(sig_scores[gene,]) - mean(as.numeric(sig_scores[gene,]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene,]),na.rm=T)
     }
     #binarize the matrix
-    x <- biclust::binarize(stats::na.omit(t(sig_scores)))#discretize(stats::na.omit(t(sig_scores)),nof=10,quant=F)
+    threshold <- min(na.omit(t(sig_scores)))+(max(na.omit(t(sig_scores)))-min(na.omit(t(sig_scores))))/2
+    x <- stats::na.omit(t(sig_scores)) #> threshold) * 1
+    x[x<=threshold] <- 0
+    x[x>threshold] <- 1
+    # x <- biclust::binarize(stats::na.omit(t(sig_scores)))#discretize(stats::na.omit(t(sig_scores)),nof=10,quant=F)
     #the following if statement helps to decide the parameters for the BCCC algorithm for biclustering
 
     if (dim(sig_scores)[2] > 40) {
