@@ -16,6 +16,24 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
   radar_plot_mat <- c()
   colours_array <- grDevices::rainbow(length(names_datasets))
   # first we need to flatten this list into a matrix that we can use with the radar plot plotting function
+
+  all_metrics <- c('sd_median_ratio','abs_skewness_ratio','prop_top_10_percent','prop_top_25_percent',
+    'prop_top_50_percent','coeff_of_var_ratio','med_prop_na','med_prop_above_med',
+    'autocor_median','rho_mean_med','rho_pca1_med','rho_mean_pca1',
+    'prop_pca1_var','standardization_comp')
+
+  #ensure that all metrics are accounted for
+  for(k in 1:length(names_sigs)){
+    for(i in 1:length(names_datasets)){
+      diff_names <- base::setdiff(all_metrics,names(radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]))
+      if(length(diff_names)>0){
+        for(j in 1:length(diff_names)){
+          radar_plot_values[[names_sigs[k]]][[names_datasets[i]]][diff_names[j]] <- 0
+        }
+      }
+    }
+  }
+
   for(k in 1:length(names_sigs)){
     t <- lapply(radar_plot_values[[names_sigs[k]]],function(x) radar_plot_mat <<- rbind(radar_plot_mat,x))
   }
