@@ -1,3 +1,5 @@
+21/06/2017/Version 1.13: Fixed issue with radarplot matrix output - standardise number of columns even when such values are not computed.
+21/06/2017/Version 0.1.12: Alessandro fixed error with long file names in windows, adding virtual drive solution, and other bug fixes.
 20/06/2017/Version 1.12: Fixed a tiny bug causing the warning for the heatmaps, removed borders around the barplots, added more colours (dynamic based on how many datasets there are) for the radarplot, no longer outputting the threshold value for binarization as it is just the median.
 20/06/2017/Version 1.11: Alessandro added bootstrap resampling + bug fixes.
 10/06/2017/Version 1.10: Fixed outptutting of radarchart_table.txt for consistency. Rowname format now standardised to have '.' replacing spaces in the signature name or dataset name and have an '_' between the signature and dataset name.
