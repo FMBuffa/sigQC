@@ -40,7 +40,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.12-----")
+  print("-----sigQC Version 0.1.12-----")
 
   ###########Check the input
  radar_plot_values <- list();
@@ -87,117 +87,144 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       stop("Need to ensure that there are at least 2 datasets from each origin.")
     }
   }
-
-
-
-
-     #check that the legnths of the names are all equal
-  if ((length(names_datasets)== length(mRNA_expr_matrix)) && (length(names_sigs)==length(gene_sigs_list))){
-
-
-    ###########Check if the needed package exists otherwise install it
-    dir.create(out_dir)
-   # utils::write.table('',file=file.path(out_dir, "log.log"))
-    #LOG file path
-    logfile.path = file.path(out_dir, "log.log")
-    #Log conn
-    log.con = file(logfile.path, open = "a") #open the logfile
-    #run each of the sub functions
-    cat(paste("LOG FILE CREATED: ",Sys.time(), sep=""), file=log.con, sep="\n") #start the log file
-
-    #check that the signatures are of length >= 2, if not, we remove it
-    sigs_to_remove_ind <- c()
-    for (k in 1:length(names_sigs)){
-      gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
-      if(length(gene_sig[,1]) < 2){
-        sigs_to_remove_ind <- c(sigs_to_remove_ind,k)
-#        stop("Every signature must contain at least 2 elements.")
-       }
+  tryCatch({
+    #Check if the OS is windows and allow longer path in this case
+    os.name = Sys.info()["sysname"]
+    os.release = Sys.info()["release"]
+    useVirDrive = F
+    if(!doNegativeControl && nchar(out_dir)>100 && os.name=="Windows" && grepl(paste0(".*(7|8|10).*"), os.release, ignore.case=TRUE)){
+      #out_dir = path.expand("~")
+      # out_dir1 = file.path("/?", out_dir)
+      #
+      # out_dir1 = paste("\\?\\", out_dir, sep="")
+      # out_dir2 = file.path("\\\\?\\C:\\Users\\Alessandro\\Documents")
+      system(paste0("subst x: ", out_dir), intern=T)
+      out_dir = "x:"
+      # outDir.file = file.path(outDir, paste0(paste(sample(letters, 251, TRUE), collapse = ''), '.txt'))
+      # write(1, file = outDir.file)
+      useVirDrive = T;
     }
-    #remove the offending signatures
-    if (length(sigs_to_remove_ind) > 0){
-      gene_sigs_list[names_sigs[k]] <- NULL
-      for(j in 1:length(sigs_to_remove_ind)){
-        cat(paste0("Need at least 2 elements per signature (signature removed): ",names_sigs[sigs_to_remove_ind[j]]), file=log.con, sep="\n")
+
+       #check that the legnths of the names are all equal
+    if ((length(names_datasets)== length(mRNA_expr_matrix)) && (length(names_sigs)==length(gene_sigs_list))){
+
+
+      ###########Check if the needed package exists otherwise install it
+      dir.create(out_dir)
+     # utils::write.table('',file=file.path(out_dir, "log.log"))
+      #LOG file path
+      logfile.path = file.path(out_dir, "log.log")
+      #Log conn
+      log.con = file(logfile.path, open = "a") #open the logfile
+      #run each of the sub functions
+      cat(paste("LOG FILE CREATED: ",Sys.time(), sep=""), file=log.con, sep="\n") #start the log file
+
+      #check that the signatures are of length >= 2, if not, we remove it
+      sigs_to_remove_ind <- c()
+      for (k in 1:length(names_sigs)){
+        gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
+        if(length(gene_sig[,1]) < 2){
+          sigs_to_remove_ind <- c(sigs_to_remove_ind,k)
+  #        stop("Every signature must contain at least 2 elements.")
+         }
       }
-      names_sigs <- names_sigs[-sigs_to_remove_ind]#NULL
-    }
+      #remove the offending signatures
+      if (length(sigs_to_remove_ind) > 0){
+        gene_sigs_list[names_sigs[k]] <- NULL
+        for(j in 1:length(sigs_to_remove_ind)){
+          cat(paste0("Need at least 2 elements per signature (signature removed): ",names_sigs[sigs_to_remove_ind[j]]), file=log.con, sep="\n")
+        }
+        names_sigs <- names_sigs[-sigs_to_remove_ind]#NULL
+      }
 
-    if(length(names_sigs) == 0){
-      stop("No signatures contained at least 2 signature elements.") #if all signatures have been removed, then we have to stop
-    }
+      if(length(names_sigs) == 0){
+        stop("No signatures contained at least 2 signature elements.") #if all signatures have been removed, then we have to stop
+      }
 
-    #first we must check that the genes of the signature are actually present in the datasets...
-    datasets_to_remove_ind <- c()
-    for (k in 1:length(names_sigs)){
-      gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
-      for(i in 1:length(names_datasets)){
-        data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load in the data matrix
-        inter <- intersect(gene_sig[,1], row.names(data.matrix)) #make sure the genes are present in the dataset
-        if(length(inter) < 2){
-          #we need to exclude this dataset from further analysis because not enough signature genes are present
-          datasets_to_remove_ind <- c(datasets_to_remove_ind,i)
+      #first we must check that the genes of the signature are actually present in the datasets...
+      datasets_to_remove_ind <- c()
+      for (k in 1:length(names_sigs)){
+        gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
+        for(i in 1:length(names_datasets)){
+          data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load in the data matrix
+          inter <- intersect(gene_sig[,1], row.names(data.matrix)) #make sure the genes are present in the dataset
+          if(length(inter) < 2){
+            #we need to exclude this dataset from further analysis because not enough signature genes are present
+            datasets_to_remove_ind <- c(datasets_to_remove_ind,i)
+          }
         }
       }
-    }
-    datasets_to_remove_ind <- unique(datasets_to_remove_ind)
-    if(length(datasets_to_remove_ind) > 0) {
-      #now we do the removal
-      mRNA_expr_matrix[names_datasets[datasets_to_remove_ind]] <- NULL
-      #write it out that we've removed these datasets
-      for(j in 1:length(datasets_to_remove_ind)){
-        cat(paste0("Not enough signature genes present in dataset (dataset removed): ",names_datasets[datasets_to_remove_ind[j]]), file=log.con, sep="\n")
+      datasets_to_remove_ind <- unique(datasets_to_remove_ind)
+      if(length(datasets_to_remove_ind) > 0) {
+        #now we do the removal
+        mRNA_expr_matrix[names_datasets[datasets_to_remove_ind]] <- NULL
+        #write it out that we've removed these datasets
+        for(j in 1:length(datasets_to_remove_ind)){
+          cat(paste0("Not enough signature genes present in dataset (dataset removed): ",names_datasets[datasets_to_remove_ind[j]]), file=log.con, sep="\n")
+        }
+        names_datasets <- names_datasets[-datasets_to_remove_ind]#NULL
       }
-      names_datasets <- names_datasets[-datasets_to_remove_ind]#NULL
-    }
 
-    if(length(names_datasets) == 0){
-      stop("No datasets expressed at least 2 signature elements.") #if all datasets have been removed, then we have to stop
-    }
+      if(length(names_datasets) == 0){
+        stop("No datasets expressed at least 2 signature elements.") #if all datasets have been removed, then we have to stop
+      }
 
-    tryCatch(radar_plot_values <- eval_var_loc(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values),
-             error=function(err){
-               cat(paste0("Error occurred in eval_var_loc: ",err), file=log.con, sep="\n")
-             })
-    tryCatch(radar_plot_values <- eval_expr_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,thresholds, out_dir,file=log.con,showResults,radar_plot_values ),
-             error=function(err){
-               cat(paste0("Error occurred in eval_expr_loc: ",err), file=log.con, sep="\n")
-             })
-    tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values,logged=T,origin ),
-             error=function(err){
-               cat(paste0("Error occurred during the evaluation of compactness: ",err), file=log.con, sep="\n")
-             })
-    tryCatch({radar_plot_values <- compare_metrics_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values )},
-             error=function(err){
-            #  print(paste0("Error, likely due to inability to calculate PCA, because of missing values: ", err))
-               cat(paste0("Error occurred, likely due to inability to calculate PCA, because of missing values:  ",err), file=log.con, sep="\n")
-             })
-    tryCatch({radar_plot_values <- eval_stan_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values )},
+      tryCatch(radar_plot_values <- eval_var_loc(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values),
+               error=function(err){
+                 cat(paste0("Error occurred in eval_var_loc: ",err), file=log.con, sep="\n")
+               })
+      tryCatch(radar_plot_values <- eval_expr_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,thresholds, out_dir,file=log.con,showResults,radar_plot_values ),
+               error=function(err){
+                 cat(paste0("Error occurred in eval_expr_loc: ",err), file=log.con, sep="\n")
+               })
+      tryCatch(radar_plot_values <- eval_compactness_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values,logged=T,origin ),
+               error=function(err){
+                 cat(paste0("Error occurred during the evaluation of compactness: ",err), file=log.con, sep="\n")
+               })
+      tryCatch({radar_plot_values <- compare_metrics_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values )},
+               error=function(err){
+              #  print(paste0("Error, likely due to inability to calculate PCA, because of missing values: ", err))
+                 cat(paste0("Error occurred, likely due to inability to calculate PCA, because of missing values:  ",err), file=log.con, sep="\n")
+               })
+      tryCatch({radar_plot_values <- eval_stan_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,out_dir,file=log.con,showResults,radar_plot_values )},
+            error=function(err){
+             cat(paste0("Error occurred in eval_stan_loc: ",err), file=log.con, sep="\n")
+           })
+      tryCatch(radar_plot_values <- eval_struct_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,covariates,out_dir,file=log.con,showResults,radar_plot_values ),
+               error=function(err){
+                 cat(paste0("Error occurred in eval_struct_loc: ",err), file=log.con, sep="\n")
+               })
+      # print(radar_plot_values)
+      tryCatch(make_radar_chart_loc(radar_plot_values,showResults,names_sigs, names_datasets,out_dir,file=log.con),
+               error=function(err){
+                 cat(paste0("Error occurred in make_radar_chart_loc: ",err), file=log.con, sep="\n")
+               })
+      if(doNegativeControl){
+        tryCatch(.sigsQcNegativeControl(genesList=gene_sigs_list, expressionMatrixList=mRNA_expr_matrix, outputDir=out_dir, logFile=logfile.path, numResampling=numResampling),
           error=function(err){
-           cat(paste0("Error occurred in eval_stan_loc: ",err), file=log.con, sep="\n")
-         })
-    tryCatch(radar_plot_values <- eval_struct_loc(gene_sigs_list,names_sigs,mRNA_expr_matrix,names_datasets,covariates,out_dir,file=log.con,showResults,radar_plot_values ),
-             error=function(err){
-               cat(paste0("Error occurred in eval_struct_loc: ",err), file=log.con, sep="\n")
-             })
-    # print(radar_plot_values)
-    tryCatch(make_radar_chart_loc(radar_plot_values,showResults,names_sigs, names_datasets,out_dir,file=log.con),
-             error=function(err){
-               cat(paste0("Error occurred in make_radar_chart_loc: ",err), file=log.con, sep="\n")
-             })
-    if(doNegativeControl){
-      tryCatch(.sigsQcNegativeControl(genesList=gene_sigs_list, expressionMatrixList=mRNA_expr_matrix, outputDir=out_dir, logFile=logfile.path, numResampling=numResampling),
-        error=function(err){
-          cat(paste0("Error occurred during the execution of negative controls: ",err), file=log.con, sep="\n")
-        }
-      )
-    }
+            cat(paste0("Error occurred during the execution of negative controls: ",err), file=log.con, sep="\n")
+          }
+        )
+      }
 
-    if(!showResults)
-      grDevices::graphics.off() #make sure that everything is closed
-    close(log.con) #close connection to the file
-  }else{
-    print("Error: the length of names is not matching the number of elements in the expression matrices list.
-          You need to have a name for every dataset and signature used.")
-  }
+
+
+      if(!showResults)
+        grDevices::graphics.off() #make sure that everything is closed
+      # close(log.con) #close connection to the file
+    }else{
+      print("Error: the length of names is not matching the number of elements in the expression matrices list.
+            You need to have a name for every dataset and signature used.")
+    }
+  }, error = function(err) {
+    #cat("", file=log.con, sep="\n")
+    #cat(paste(Sys.time(),"Errors occurred during in sigQcNegativeControl:", err, sep=" "), file=log.con, sep="\n")
+    #stop("Errors occurred during the computation of negative controls")
+  }, finally = {
+    #cat("---------------------------------------------------------------------------", file=log.con, sep="\n")
+    if(useVirDrive){
+      system("subst x: /D")
+    }
+    close(log.con)
+  })#END tryCatch
 }
