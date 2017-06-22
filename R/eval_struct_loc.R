@@ -28,7 +28,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
       }
     }
   }
-  #Next we loop through and generate the heatmaps for expression 
+  #Next we loop through and generate the heatmaps for expression
 
   #first we do a check to ensure that all heatmpas have the same genes as rows and add NA values if not
   #first let's get all possible rows expressed of the signature across all samples
@@ -47,7 +47,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
      all_row_names[[names_sigs[k]]] <- unique(all_row_names[[names_sigs[k]]])
   }
   #now that we know the unique rownames for each signature, we should go through and generate the heatmap matrices with appended min values
-  sig_scores_all_mats <- list() #this will be the list of signature score matrices 
+  sig_scores_all_mats <- list() #this will be the list of signature score matrices
   for (k in 1:length(names_sigs)){
     sig_scores_all_mats[[names_sigs[k]]] <- list()
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
@@ -68,7 +68,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
 
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
-    hmaps <- sapply(1:length(names_datasets),function(i) { 
+    hmaps <- sapply(1:length(names_datasets),function(i) {
       #this is a subroutine to create a list of heatmaps stored in hmaps that can be plotted
 
       # data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
@@ -139,14 +139,14 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
         cat(paste0('Error when creating expression heatmaps for ',names_datasets[i],' ', names_sigs[k],': ',err,'\n'), file=file) #output to llog file
 
         graphics::plot.new()
-        graphics::title(paste0('\n \n \n',names_datasets[i],' ',names_sigs[k])) #makes a graphics object 
+        graphics::title(paste0('\n \n \n',names_datasets[i],' ',names_sigs[k])) #makes a graphics object
       })
       ans_hmap #return the heatmap to be added to the list for plotting
 
       #grab_grob()
     })
 
-    #the following loop concatenates the list of heatmaps to be plotted into one heatmaplist (complexheatmap object), and then 
+    #the following loop concatenates the list of heatmaps to be plotted into one heatmaplist (complexheatmap object), and then
     #cycles through each of the datasets for the clustering, plotting each case of heatmap
     for ( i in 1:length(names_datasets)){
       all_hmaps <- hmaps[[1]]
@@ -204,13 +204,13 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     }
 
     #the following does the binarization of the matrix
-     threshold <- min(na.omit(t(sig_scores)))+(max(na.omit(t(sig_scores)))-min(na.omit(t(sig_scores))))/2
+     threshold <- min(stats::na.omit(t(sig_scores)))+(max(stats::na.omit(t(sig_scores)))-min(stats::na.omit(t(sig_scores))))/2
     x <- stats::na.omit(t(sig_scores)) #> threshold) * 1
     x[x<=threshold] <- 0
     x[x>threshold] <- 1
     # print(paste0('thresh ',threshold))
     # x <- biclust::binarize(stats::na.omit(t(sig_scores)))#discretize(stats::na.omit(t(sig_scores)),nof=10,quant=F)
- 
+
     #the following if statement creates the parameters for the biclustering algorithm; namely the number of columns to take in each
     #repetition of the biclustering algorithm (we use BCCC) - this is dependent on the size of the matrix
 
@@ -284,7 +284,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
       sig_scores[gene,] <- (as.numeric(sig_scores[gene,]) - mean(as.numeric(sig_scores[gene,]),na.rm=T)) / stats::sd(as.numeric(sig_scores[gene,]),na.rm=T)
     }
     #binarize the matrix
-    threshold <- min(na.omit(t(sig_scores)))+(max(na.omit(t(sig_scores)))-min(na.omit(t(sig_scores))))/2
+    threshold <- min(stats::na.omit(t(sig_scores)))+(max(stats::na.omit(t(sig_scores)))-min(stats::na.omit(t(sig_scores))))/2
     x <- stats::na.omit(t(sig_scores)) #> threshold) * 1
     x[x<=threshold] <- 0
     x[x>threshold] <- 1
