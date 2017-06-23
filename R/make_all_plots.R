@@ -40,7 +40,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 1.13-----")
+  print("-----sigQC Version 0.1.14-----")
 
   ###########Check the input
  radar_plot_values <- list();
@@ -92,7 +92,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
     os.name = Sys.info()["sysname"]
     os.release = Sys.info()["release"]
     useVirDrive = F
-    if(!doNegativeControl && nchar(out_dir)>100 && os.name=="Windows" && grepl(paste0(".*(7|8|10).*"), os.release, ignore.case=TRUE)){
+    if(doNegativeControl && nchar(out_dir)>100 && os.name=="Windows" && grepl(paste0(".*(7|8|10).*"), os.release, ignore.case=TRUE)){
       #out_dir = path.expand("~")
       # out_dir1 = file.path("/?", out_dir)
       #
