@@ -182,7 +182,7 @@
       names_sigs = names(gene_sigs_list)
 
       #####sigQC
-      cat(paste(Sys.time(), "Computing the Negative Control...", sep=" "), file=log.con, sep="\n")
+      cat(paste(Sys.time(), "Computing the Negative Control...", sep=" "), file=log.con, sep="")
 
 
       mRNA_expr_matrix = list()
