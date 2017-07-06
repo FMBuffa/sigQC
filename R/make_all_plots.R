@@ -40,7 +40,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 0.1.14-----")
+  print("-----sigQC Version 0.1.13-----")
 
   ###########Check the input
  radar_plot_values <- list();
@@ -98,8 +98,9 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       #
       # out_dir1 = paste("\\?\\", out_dir, sep="")
       # out_dir2 = file.path("\\\\?\\C:\\Users\\Alessandro\\Documents")
-      system(paste0("subst x: ", out_dir), intern=T)
-      out_dir = "x:"
+      virD = "y:"
+      system(paste0("subst ",virD, " ", out_dir), intern=T)
+      out_dir = virD
       # outDir.file = file.path(outDir, paste0(paste(sample(letters, 251, TRUE), collapse = ''), '.txt'))
       # write(1, file = outDir.file)
       useVirDrive = T;
@@ -223,7 +224,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   }, finally = {
     #cat("---------------------------------------------------------------------------", file=log.con, sep="\n")
     if(useVirDrive){
-      system("subst x: /D")
+      system(paste0("subst ",virD," /D"), intern =T)
     }
     close(log.con)
   })#END tryCatch

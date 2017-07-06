@@ -192,12 +192,20 @@
       mRNA_expr_matrix[[datasetName]] = expressionMatrix
       sigQC.out_dir = file.path(outputDir, "negative_control", datasetName, signatureName, "sigQC")
       dir.create(path = sigQC.out_dir, showWarnings = FALSE, recursive = T)
-      sigQC::make_all_plots(names_datasets = names,
+      # sigQC::make_all_plots(names_datasets = names,
+      #                       gene_sigs_list = gene_sigs_list,
+      #                       names_sigs = names_sigs,
+      #                       mRNA_expr_matrix = mRNA_expr_matrix,
+      #                       out_dir = sigQC.out_dir,
+      #                       doNegativeControl=F)
+
+      .compute_without_plots(names_datasets = names,
                             gene_sigs_list = gene_sigs_list,
                             names_sigs = names_sigs,
                             mRNA_expr_matrix = mRNA_expr_matrix,
-                            out_dir = sigQC.out_dir,
-                            doNegativeControl=F)
+                            out_dir = sigQC.out_dir
+                            )
+
       cat("DONE", file=log.con, sep="\n")
 
       #Read the radarchart_table in the sigQC dir
