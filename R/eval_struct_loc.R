@@ -62,7 +62,7 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
         sig_scores <- rbind(sig_scores,matrix(min(sig_scores),nrow=length(rows_needed),ncol=dim(sig_scores)[2]))
         row.names(sig_scores) <- c(inter,rows_needed)
       }
-      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores[gene_sig[,1],]
+      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores#[gene_sig[,1],]
     }
   }
 

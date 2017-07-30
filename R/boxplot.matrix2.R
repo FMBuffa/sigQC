@@ -20,7 +20,7 @@
 #
 #@author Alessandro Barberis
 ######################################################################################
-.boxplot.matrix2 <- function(x, use.cols=TRUE, outputDir, plotName="boxplot", plotTitle="Boxplot", ylab=NULL, xlab=NULL, stripchartMatrixList=NULL, stripchartCol=NULL, stripchartPch=rep(21, length(stripchartMatrixList)), ...){
+.boxplot.matrix2 <- function(x, use.cols=TRUE, outputDir, plotName="boxplot", plotTitle="Boxplot", ylab=NULL, xlab=NULL, stripchartMatrixList=NULL, stripchartCol=NULL, stripchartPch=rep(21, length(stripchartMatrixList)), group.names=NULL,...){
   ###########Check the input
   if(missing(x)){
     stop("Need to specify a numeric matrix.")
@@ -64,7 +64,7 @@
   graphics::par(las=2)#label vertical to the axis
   graphics::par(mar=c(mar.bottom,6,2,4))#c(bottom, left, top, right)
   #Draw the boxplot
-  graphics::boxplot.matrix(x = x, ylab=ylab, use.cols = T, outline=T, outpch = NA, cex.main=0.9, main=plotTitle, ... = ...)
+  graphics::boxplot.matrix(x = x, ylab=ylab, use.cols = T, outline=T, outpch = NA, cex.main=0.9, main=plotTitle,names=group.names, ... = ...)
   graphics::mtext(text=xlab, side = 1, line = mar.bottom-1, las=1)#Draw xlabel
 
   #Plot additional vertical scatter plots, if any

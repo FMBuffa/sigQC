@@ -245,9 +245,15 @@
       }
 
       sigQC.out_dir = file.path(outputDir, "negative_control", datasetName, signatureName)
+      stripchart_group_names <- c('Relative Med. SD','Skewness',expression(sigma["" >= "10%" ]),expression(sigma["" >= "25%" ]),expression(sigma["" >= "50%" ]),'Coef. of Var.',
+                               'Non-NA Prop.','Prop. Expressed',
+                               'Autocor.',expression(rho["Mean,Med" ]),
+                               expression(rho["PCA1,Med" ]),expression(rho["Mean,PCA1" ]), expression(sigma["PCA1" ]),
+                               expression(rho["Med,Z-Med" ]))
+
       .boxplot.matrix2(x=neg.controls.summary[2:6,], outputDir=sigQC.out_dir, plotName="boxplot_metrics",
                        plotTitle=paste("Boxplot Negative Controls for",signatureName,sep=" "), stripchartMatrixList=stripchartMatrixList,
-                       stripchartPch=c(1, 21), stripchartCol = c("gray", "red"), xlab ="Metrics", ylab="Score")
+                       stripchartPch=c(1, 21), stripchartCol = c("gray", "red"), xlab ="Metrics", ylab="Score",group.names=stripchart_group_names)
 
       #Store the matrix containing the summary of negative controls (i.e. quantiles)
       summary.filePath = file.path(sigQC.out_dir, "neg_controls_summary_table.txt")

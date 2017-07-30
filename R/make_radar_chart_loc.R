@@ -119,12 +119,12 @@ make_radar_chart_loc <- function(radar_plot_values,showResults = FALSE,names_sig
                    cglcol = 'grey',axislabcol = 'black',
                    caxislabels = seq(0,1,length.out = 5),
                    cglty = 1,cglwd = 1,calcex = 0.5,
-                   vlabels = c('Ratio of\nMed. SD','Skew Ratio','Prop in\ntop 10% var','Prop in\ntop 25% var','Prop in\ntop 50% var','Coef. of Var. \nRatio',
-                               'Med. non-NA Prop.','Med. Prop.\nExpressed',
-                               'Med. Autocor.','Mean, Med.\nScore Cor.',
-                               'PCA1, Med.\nScore Cor.','Mean, PCA1\nScore Cor.', 'Prop. Var. \nby PCA1',
-                               'Med., Z_Med.\nScore Cor.'),
-                   vlcex = 0.8,
+                   vlabels = c('Relative\nMed. SD','Skewness',expression(sigma["" >= "10%" ]),expression(sigma["" >= "25%" ]),expression(sigma["" >= "50%" ]),'Coef. of Var.',
+                               'Non-NA\nProp.','Prop.\nExpressed',
+                               'Autocor.',expression(rho["Mean,Med" ]),
+                               expression(rho["PCA1,Med" ]),expression(rho["Mean,PCA1" ]), expression(sigma["PCA1" ]),
+                               expression(rho["Med,Z-Med" ])),
+                   vlcex = 0.6,
                    title='Signature Summary',
                    pty=16, plty=legend_lty,pcol=legend_cols,plwd = 2)
   legend_labels <- legend_labels[order(-areas)]
