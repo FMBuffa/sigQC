@@ -196,10 +196,12 @@ eval_compactness_loc_noplots <- function(gene_sigs_list,names_sigs, mRNA_expr_ma
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
     for (i in 1:length(names_datasets) ){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the datasets
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes in the dataset
+      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes in the dataset 
+
       autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate autocorrelation
+
       if(dim(autocors)[1] > 1){
-        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
+        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(autocors,na.rm=T) #store the median autocorrelation for the final radar plot
       }else{
         radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- 0#stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
       }

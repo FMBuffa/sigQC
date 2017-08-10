@@ -174,7 +174,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
         }else{
           graphics::lines(stats::density(unlist(stats::na.omit(autocors))),ylim=c(0,ceiling(max_dens)),xlim=c(-1,1),col=i,main=NA,lwd=2,lty=k)
         }
-        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
+        radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- stats::median(autocors,na.rm=T) #store the median autocorrelation for the final radar plot
       }else{
         radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['autocor_median'] <- 0#stats::median(stats::na.omit(autocors)) #store the median autocorrelation for the final radar plot
 

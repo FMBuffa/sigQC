@@ -67,7 +67,7 @@
     warnings.con = file(warningsFile, open = "a")
 
     #Loop over the signatures
-    for(genes.i in length(genesList)){
+    for(genes.i in 1:length(genesList)){
       genes = as.matrix(genesList[[genes.i]])
       colnames(genes) = names(genesList)[genes.i]
       #For each signature do a negative control
@@ -231,13 +231,14 @@
 
       #Retrieve data from the original sigQC
       sigQC.out_dir = outputDir
-      sig.metrics.file.path = file.path(sigQC.out_dir, "radarchart_table", "radarchart_table.txt")
+      sig.metrics.file.path = file.path(outputDir, "radarchart_table", "radarchart_table.txt")
       if(file.exists(sig.metrics.file.path)){
         sig.metrics.table = utils::read.table(file = sig.metrics.file.path, header = T, sep = "\t", check.names = F, row.names = 1)
         #TO CHANGE: need to address a table where there could be stored multiple signatures metrics
         #sig.metrics.table = t(sig.metrics.table)
         #Look for the row label containing the signature name and the current dataset id
-        index = which(grepl(paste0(".*(",datasetName,".*",signatureName,"|",signatureName,".*",datasetName,").*"), rownames(sig.metrics.table), ignore.case=TRUE)==T)
+       # paste0(gsub(' ','.', names_datasets[i]),'_',gsub(' ','.', names_sigs[k]))
+        index = which(rownames(sig.metrics.table) == paste0(gsub(' ','.', datasetName),'_',gsub(' ','.', signatureName))) #which(grepl(paste0(".*(",datasetName,".*",signatureName,"|",signatureName,".*",datasetName,").*"), rownames(sig.metrics.table), ignore.case=TRUE)==T)
         #sig.metrics.table.sigs =
 
         sig.metrics.table = sig.metrics.table[index,,drop=F]
@@ -271,4 +272,3 @@
     close(warnings.con)
   })#END tryCatch
 }
-
