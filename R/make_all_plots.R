@@ -40,7 +40,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 0.1.17-----")
+  print("-----sigQC Version 0.1.18-----")
 
   ###########Check the input
  radar_plot_values <- list();
@@ -93,17 +93,25 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
     os.release = Sys.info()["release"]
     useVirDrive = F
     if(doNegativeControl && nchar(out_dir)>100 && os.name=="Windows" && grepl(paste0(".*(7|8|10).*"), os.release, ignore.case=TRUE)){
-      #out_dir = path.expand("~")
-      # out_dir1 = file.path("/?", out_dir)
-      #
-      # out_dir1 = paste("\\?\\", out_dir, sep="")
-      # out_dir2 = file.path("\\\\?\\C:\\Users\\Alessandro\\Documents")
-      virD = "y:"
-      system(paste0("subst ",virD, " ", out_dir), intern=T)
-      out_dir = virD
-      # outDir.file = file.path(outDir, paste0(paste(sample(letters, 251, TRUE), collapse = ''), '.txt'))
-      # write(1, file = outDir.file)
-      useVirDrive = T;
+      #Check if there is a letter not already in use to create a virtual drive
+      freeLetter = FALSE;
+      for(letter in letters){
+        path.test=paste0(letter,":/");
+        if(!dir.exists(path.test)){
+          freeLetter = TRUE;
+          break;
+        }
+      }
+      if(freeLetter==TRUE){
+        virD = paste0(letter, ":")
+        system(paste0("subst ",virD, " ", out_dir), intern=T)
+        out_dir = virD
+        # outDir.file = file.path(outDir, paste0(paste(sample(letters, 251, TRUE), collapse = ''), '.txt'))
+        # write(1, file = outDir.file)
+        useVirDrive = T;
+      }else{
+        stop("ERROR: There is a problem with the output path length. Try to change the output directory (look for a short path) or use a different OS.");
+      }
     }
 
        #check that the legnths of the names are all equal
