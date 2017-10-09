@@ -44,9 +44,10 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
     }
     sig_ind <- ceiling(i/length(names_datasets))
     gene_sig <- gene_sigs_list[[names_sigs[sig_ind]]]
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
 
     data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]] #load the data
-    inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes inside the dataset
+    inter <- intersect(gene_sig, row.names(data.matrix)) #consider only the genes inside the dataset
     autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate the autocorrelations
     # print(paste0('gene_sig ',gene_sig))
     # print(paste0("intersection",inter))
@@ -138,9 +139,10 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   max_x_coord <- -9999 #for legnd plotting
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]]
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
     for (i in 1:length(names_datasets) ){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]]
-      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+      inter <- intersect(gene_sig, row.names(data.matrix))
       autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
       # print(paste0("autocor dim", dim(autocors)))
       # print(autocors)
@@ -161,9 +163,10 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   plots_count <- 0
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
     for (i in 1:length(names_datasets) ){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the datasets
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #consider only the genes in the dataset
       autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman') #calculate autocorrelation
       #make the plots
       if(dim(autocors)[1] > 1){
@@ -198,7 +201,7 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
   if (length(names_datasets) > 1){
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the gene signature
-
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
     #create the canvas
     if (showResults){
       grDevices::dev.new()
@@ -210,14 +213,14 @@ eval_compactness_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, na
 
     #now we take the median of the genes' autocorrelation for each gene in each dataset and then look at the rank product over the different cancer types
     #note that the rank product analysis is only done if there is more than one dataset (otherwise not done, and is doen separately for each gene signature)
-      overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig[,1])),ncol=length(names_datasets))
+      overall_rank_mat <- matrix(NA,nrow=length(unique(gene_sig)),ncol=length(names_datasets))
       #create the overall matrix of datsets and signature genes containing the
       #median gene autocorrelation for each dataset
-      row.names(overall_rank_mat) <- unique(gene_sig[,1])
+      row.names(overall_rank_mat) <- unique(gene_sig)
       colnames(overall_rank_mat) <- names_datasets
       for (i in 1:length(names_datasets)){
         data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load data
-        inter = intersect(unique(gene_sig[,1]),rownames(data.matrix)) #consider only genes present in that dataset
+        inter = intersect(unique(gene_sig),rownames(data.matrix)) #consider only genes present in that dataset
         autocors <- stats::cor(t(stats::na.omit(data.matrix[inter,])),method='spearman')
         median_scores <- as.matrix(apply(autocors,2,function(x) {stats::median(stats::na.omit(x))})) #median autocorrelation
         overall_rank_mat[rownames(median_scores),i] <- median_scores[,1]

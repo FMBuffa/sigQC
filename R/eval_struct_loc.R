@@ -36,11 +36,12 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
   for (k in 1:length(names_sigs)){
     all_row_names[[names_sigs[k]]] <- c()
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
 
     for (i in 1:length(names_datasets)){
 
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #consider only the genes present in the dataset
 
       all_row_names[[names_sigs[k]]] <- c(all_row_names[[names_sigs[k]]],inter)
     }
@@ -51,10 +52,11 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
   for (k in 1:length(names_sigs)){
     sig_scores_all_mats[[names_sigs[k]]] <- list()
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
 
     for (i in 1:length(names_datasets)){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #consider only the genes present in the dataset
       sig_scores <- (as.matrix(data.matrix[inter,])) #compute the signature scores
       #now let's see how many rows of NA values we need to add
       rows_needed <- setdiff(all_row_names[[names_sigs[k]]],inter)
@@ -62,17 +64,19 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
         sig_scores <- rbind(sig_scores,matrix(min(sig_scores),nrow=length(rows_needed),ncol=dim(sig_scores)[2]))
         row.names(sig_scores) <- c(inter,rows_needed)
       }
-      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores#[gene_sig[,1],]
+      sig_scores_all_mats[[names_sigs[k]]][[names_datasets[i]]] <- sig_scores#[gene_sig,]
     }
   }
 
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
+
     hmaps <- sapply(1:length(names_datasets),function(i) {
       #this is a subroutine to create a list of heatmaps stored in hmaps that can be plotted
 
       # data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
-      # inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider only the genes present in the dataset
+      # inter <- intersect(gene_sig, row.names(data.matrix)) #consider only the genes present in the dataset
 
       # sig_scores <- (as.matrix(data.matrix[inter,])) #compute the signature scores
       # #  print(sig_scores)
@@ -192,9 +196,10 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     }
     sig_ind <- ceiling(i/length(names_datasets))
     gene_sig <- gene_sigs_list[[names_sigs[sig_ind]]]
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
 
     data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]] #load the data
-    inter = intersect(gene_sig[,1], row.names(data.matrix)) #only consider the genes present in the dataset
+    inter = intersect(gene_sig, row.names(data.matrix)) #only consider the genes present in the dataset
     sig_scores <- as.matrix(data.matrix[inter,])
     sig_scores[!is.finite(sig_scores)] <- NA #make sure the scores aren't infinte
 
@@ -273,9 +278,10 @@ eval_struct_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_da
     }
     sig_ind <- ceiling(i/length(names_datasets))
     gene_sig <- gene_sigs_list[[names_sigs[sig_ind]]]
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
 
     data.matrix = mRNA_expr_matrix[[names_datasets[dataset_ind]]] #load the data
-    inter = intersect(gene_sig[,1], row.names(data.matrix)) #consider only genes present in both cases
+    inter = intersect(gene_sig, row.names(data.matrix)) #consider only genes present in both cases
 
     sig_scores <- as.matrix(data.matrix[inter,])
     sig_scores[!is.finite(sig_scores)] <- NA #make sure the data is finite

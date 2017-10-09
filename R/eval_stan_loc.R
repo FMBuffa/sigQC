@@ -37,14 +37,15 @@ eval_stan_loc <- function(gene_sigs_list, names_sigs,mRNA_expr_matrix, names_dat
   #set up graphics area
   graphics::par(mfrow=c(num_rows,num_cols),oma=c(2,2,2,2),mar=c(4,4,4,4))
 
-  #create dir for output text files 
+  #create dir for output text files
   dir.create(file.path(out_dir,'standardisation_tables'))
 
-  for(k in 1:length(names_sigs)){ 
+  for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
     for (i in 1:length(names_datasets)){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load in the data matrix
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #make sure the genes are present in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #make sure the genes are present in the dataset
       # the following takes the expressions of the gene signature and computes standardised expressions across samples
       z_transf_mRNA <- data.matrix[inter,]
       for (gene in inter){
@@ -69,7 +70,7 @@ eval_stan_loc <- function(gene_sigs_list, names_sigs,mRNA_expr_matrix, names_dat
       rho <- stats::cor(med_scores,z_transf_scores,method='spearman')
       graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores))
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['standardization_comp'] <- rho #store the value for the final radar plot
-      
+
       #here we output the table of meadian and z-median scores to a table
       output_mat <- cbind(med_scores,z_transf_scores)
       colnames(output_mat) <- c('Median Scores','Z-Median Scores')

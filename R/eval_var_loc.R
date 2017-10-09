@@ -39,10 +39,12 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   graphics::par(mfrow=c(num_rows,num_cols)) #set up the plotting area
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the gene signature
+    if(is.matrix(gene_sig))
+      gene_sig = as.vector(gene_sig);
     for (i in 1:length(names_datasets)){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider genes only present in the dataset
-
+      # inter <- intersect(gene_sig[,1], row.names(data.matrix)) #consider genes only present in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #consider genes only present in the dataset
       sd_genes <- as.matrix(apply(data.matrix,1,function(x){stats::sd(as.numeric(x),na.rm=T) })) #compute the standard deviation of the genes
       mean_genes <- as.matrix(apply(mRNA_expr_matrix[[names_datasets[i]]],1,function(x) {mean(as.numeric(x),na.rm=T)})) #comptue the mean of the genes
       #stats::median(stats::na.omit(sd_genes[inter, 1]))/(stats::median(stats::na.omit(sd_genes)) +stats::median(stats::na.omit(sd_genes[inter, 1])))
@@ -108,9 +110,12 @@ eval_var_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_datas
   #the following is the code for computing coefficient of variation across signature genes and all genes
   for(k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load gene signature
+    if(is.matrix(gene_sig))
+      gene_sig = as.vector(gene_sig);
     for (i in 1:length(names_datasets)){
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only use genes in the dataset
+      # inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only use genes in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #only use genes in the dataset
       #the following computes the coefficient of varaition
       coeff_of_var <- as.matrix(apply(data.matrix,1,function(x){stats::sd(as.numeric(stats::na.omit(x)),na.rm=T) / mean(as.numeric(stats::na.omit(x)),na.rm=T)}))
       coeff_of_var_gene_sig <- coeff_of_var[inter, 1]

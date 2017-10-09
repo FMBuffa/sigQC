@@ -40,7 +40,7 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
   #### encoding scheme: major.minor
   #### major for large change
   #### minor for small change, whose results are expected to be similar as previous version. (two digits)
-  print("-----sigQC Version 0.1.18-----")
+  print("-----sigQC Version 0.1.19-----")
 
   ###########Check the input
  radar_plot_values <- list();
@@ -63,7 +63,12 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
     } else {
       names_datasets <- names(mRNA_expr_matrix)
     }
+  } else {
+    if(is.null(names(mRNA_expr_matrix))){
+      names(mRNA_expr_matrix) <- names_datasets;
+    }
   }
+
   #check that signatures have names, otherwise give them same names as in names_sigs
   if(is.null(names_sigs)){
     if(is.null(names(gene_sigs_list))){
@@ -132,7 +137,8 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       sigs_to_remove_ind <- c()
       for (k in 1:length(names_sigs)){
         gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
-        if(length(gene_sig[,1]) < 2){
+        if(is.matrix(gene_sig)){gene_sig=as.vector(gene_sig);}
+        if(length(gene_sig) < 2){
           sigs_to_remove_ind <- c(sigs_to_remove_ind,k)
   #        stop("Every signature must contain at least 2 elements.")
          }
@@ -154,9 +160,10 @@ make_all_plots <- function(gene_sigs_list, mRNA_expr_matrix,names_sigs=NULL,name
       datasets_to_remove_ind <- c()
       for (k in 1:length(names_sigs)){
         gene_sig <- gene_sigs_list[[names_sigs[k]]] #load in the gene signature
+        if(is.matrix(gene_sig)){gene_sig=as.vector(gene_sig);}
         for(i in 1:length(names_datasets)){
           data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load in the data matrix
-          inter <- intersect(gene_sig[,1], row.names(data.matrix)) #make sure the genes are present in the dataset
+          inter <- intersect(gene_sig, row.names(data.matrix)) #make sure the genes are present in the dataset
           if(length(inter) < 2){
             #we need to exclude this dataset from further analysis because not enough signature genes are present
             datasets_to_remove_ind <- c(datasets_to_remove_ind,i)

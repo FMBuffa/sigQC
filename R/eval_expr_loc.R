@@ -43,16 +43,19 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
   }
 
   for(k in 1:length(names_sigs)){
-    gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature 
-  
+    gene_sig <- gene_sigs_list[[names_sigs[k]]] #load the signature
+    if(is.matrix(gene_sig))
+      gene_sig = as.vector(gene_sig);
     for (i in 1:length(names_datasets)){
       #calculate the porportion of non-NA expression data in the matrix
       # genes_expr <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the expression data
-      inter <- intersect(gene_sig[,1], row.names(data.matrix))
+      # inter <- intersect(gene_sig[,1], row.names(data.matrix))
+      inter <- intersect(gene_sig, row.names(data.matrix))
       genes_expr <- data.matrix[inter,] #subset to only the genes present in the data
       gene_expr_vals <- (rowSums(is.na(genes_expr)) / dim(genes_expr)[2]) #count the proportion of NA values
-      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
+      # gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
+      gene_expr_vals[setdiff(gene_sig, row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
       gene_expr_vals <- -sort(-gene_expr_vals)
       #make the barplot; if all are zero, we manually set the limits for the barplot
       if(max(gene_expr_vals)==0){
@@ -97,15 +100,19 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
   #the following loops through every signature and dataset and computes the proportion of expressed genes for each case
   for (k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load signature
+    if(is.matrix(gene_sig))
+      gene_sig = as.vector(gene_sig);
     for (i in 1:length(names_datasets)){
       #calculate the porportion of expressed data in the matrix
       # genes_expr <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load in the data
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only consider the genes in the dataset
+      #inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only consider the genes in the dataset
+      inter <- intersect(gene_sig, row.names(data.matrix)) #only consider the genes in the dataset
       genes_expr <- data.matrix[inter,] #subset the matrix to just the gene signature
       gene_expr_vals <- 1 - ((rowSums(genes_expr < thresholds[i])) / (dim(genes_expr)[2])) #figure out what proportion of samples express gene above threshold
-      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 
-      gene_expr_vals <- sort(gene_expr_vals) 
+
+      gene_expr_vals[setdiff(gene_sig, row.names(data.matrix))] <- 0
+      gene_expr_vals <- sort(gene_expr_vals)
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['med_prop_above_med'] <- stats::median(gene_expr_vals) #store median value for final radar plot
       #create bar graph
       bar_expr <- graphics::barplot(gene_expr_vals,xlab="Signature Gene IDs",ylab="Proportion with expression above threshold",main=paste0("Signature gene expression\n",names_datasets[i],' ',names_sigs[k]), axisnames=F,axis=F,cex.main=min(1,4*12/max_line_length), border = NA)
@@ -118,7 +125,7 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
     grDevices::dev.copy(grDevices::pdf,file.path(out_dir,'sig_expr_barcharts.pdf'),width=4*(length(names_datasets)),height=4*(length(names_sigs)))#width=10,height=10)
   }
   grDevices::dev.off()
-  
+
   #create new plot
   if (showResults){
     grDevices::dev.new()
@@ -130,14 +137,16 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
   graphics::par(mfrow=c(num_rows,num_cols))
   for (k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load signature
+    if(is.matrix(gene_sig))
+      gene_sig = as.vector(gene_sig);
     for (i in 1:length(names_datasets)){
       #calculate the porportion of nonzero expression data in the matrix
       # genes_expr <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only look at genes that are in the dataset
-      genes_expr <- data.matrix[inter,] 
+      inter <- intersect(gene_sig, row.names(data.matrix)) #only look at genes that are in the dataset
+      genes_expr <- data.matrix[inter,]
       gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2])) #take proportion of expression
-      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 
+      gene_expr_vals[setdiff(gene_sig, row.names(data.matrix))] <- 0
       #make the density plot
       graphics::plot(stats::density(stats::na.omit(gene_expr_vals),adjust=0.25),main=paste0("Signature gene expression\n",names_datasets[i], ' ',names_sigs[k]),ylab="Density",cex.main=min(1,3.5*10/max_line_length))
     }
@@ -155,17 +164,22 @@ eval_expr_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix,names_data
 
   for (k in 1:length(names_sigs)){
     gene_sig <- gene_sigs_list[[names_sigs[k]]] #load signature
+    if(is.matrix(gene_sig))
+      gene_sig = as.vector(gene_sig);
     for (i in 1:length(names_datasets)){
       #calculate the porportion of nonzero expression data in the matrix
       # genes_expr <- mRNA_expr_matrix[[names_datasets[i]]][gene_sig,]
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load dataset
-      inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only look at genes that are in the dataset
-      genes_expr <- data.matrix[inter,] 
+      #inter <- intersect(gene_sig[,1], row.names(data.matrix)) #only look at genes that are in the dataset
+      genes_expr <- data.matrix[inter,]
+      inter <- intersect(gene_sig, row.names(data.matrix)) #only look at genes that are in the dataset
       gene_expr_vals <- 1 - (rowSums(genes_expr < thresholds[i]) / (dim(genes_expr)[2])) #take proportion of expression
-      gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 #add back in the genes that were never present anyways
+      #gene_expr_vals[setdiff(gene_sig[,1], row.names(data.matrix))] <- 0 #add back in the genes that were never present anyways
+      gene_expr_vals[setdiff(gene_sig, row.names(data.matrix))] <- 0 #add back in the genes that were never present anyways
 
       gene_expr_vals_na <- (rowSums(is.na(genes_expr)) / dim(genes_expr)[2]) #count the proportion of NA values
-      gene_expr_vals_na[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
+      #gene_expr_vals_na[setdiff(gene_sig[,1], row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
+      gene_expr_vals_na[setdiff(gene_sig, row.names(data.matrix))] <- 1 #add back in the genes that were never present anyways
 
       output_table <- cbind(gene_expr_vals,gene_expr_vals_na)
       colnames(output_table) <- c('Proportion_above_threshold','NA proportion')

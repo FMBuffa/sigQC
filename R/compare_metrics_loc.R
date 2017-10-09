@@ -16,9 +16,11 @@
 compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, names_datasets, out_dir = '~',file=NULL,showResults = FALSE,radar_plot_values){
   # require(gplots)
   dir.create(file.path(out_dir,'metrics_tables'))
-  for(k in 1:length(names_sigs)){ 
+  for(k in 1:length(names_sigs)){
     #for each signature we will make a separate file comparing the datasets
     gene_sig <- gene_sigs_list[[names_sigs[k]]] # load the gene signature
+    if(is.matrix(gene_sig)){gene_sig = as.vector(gene_sig);}
+
     #set up canvas for plotting
     if (showResults){
       grDevices::dev.new()
@@ -40,16 +42,16 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       # now we can loop over the datasets for the plot and generate the metrics for every dataset with this signature
       data.matrix = mRNA_expr_matrix[[names_datasets[i]]] #load the data
       data.matrix[!(is.finite(as.matrix(data.matrix)))] <- NA #ensure that the data is not infintie
-      inter = intersect(gene_sig[,1],rownames(data.matrix)) #consider only the genes actually present in the data
+      inter = intersect(gene_sig,rownames(data.matrix)) #consider only the genes actually present in the data
 
       med_scores <- apply(data.matrix[inter,],2,function(x){stats::median(stats::na.omit(x))}) #compute median
       mean_scores <- apply(data.matrix[inter,],2,function(x){mean(stats::na.omit(x))}) #compute mean
-      
+
       pca1_scores <- NULL
 
       tryCatch({
         pca1_scores <- stats::prcomp(stats::na.omit(t(data.matrix[inter,])),retx=T) #compute PCA1
-        
+
         },error=function(e){
           pca1_scores <<- NULL
           cat(paste0("There was an error:  ",names_datasets[i]," ", names_sigs[k]," ", e,'\n'), file=file)
@@ -80,7 +82,7 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
         graphics::mtext(side = 2, line = 2, 'Mean',cex=0.8)
         graphics::mtext(side = 1, line = 2, 'Median',cex=0.8)
         graphics::mtext(side=3,line=2.5,paste0(names_datasets[i],' ',names_sigs[k]),cex=min(1,3*10/max_title_length)) #title
-        rho <- stats::cor(med_scores[common_score_cols],mean_scores[common_score_cols],method='spearman') 
+        rho <- stats::cor(med_scores[common_score_cols],mean_scores[common_score_cols],method='spearman')
         rho_mean_med <- rho
         graphics::mtext(paste0('rho = ',format(rho,digits = 2)),side=3,line=0,cex = 0.6,at=max(med_scores[common_score_cols]))
       }else{
@@ -162,7 +164,7 @@ compare_metrics_loc <- function(gene_sigs_list,names_sigs, mRNA_expr_matrix, nam
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_med'] <- rho_mean_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_pca1_med'] <- rho_pca1_med
       radar_plot_values[[names_sigs[k]]][[names_datasets[i]]]['rho_mean_pca1'] <- rho_mean_pca1
-      
+
       if(length(pca1_scores) > 1){#(!is.null(pca1_scores)){
         #draws the scree plot
         bars_plot <- props_of_variances[1:min(10,length(props_of_variances))]
